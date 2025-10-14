@@ -18,7 +18,7 @@ public class ProjectEdgiAxel extends Application {
     
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("FXMLHome.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/project/edgiaxel/fxml/Dashboard.fxml"));
         
         Scene scene = new Scene(root);
         
