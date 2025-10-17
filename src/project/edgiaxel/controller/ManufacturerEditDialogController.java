@@ -23,53 +23,62 @@ public class ManufacturerEditDialogController {
     private Manufacturer manufacturer;
     private boolean okClicked = false;
 
+    /**
+     * Initializes the controller class. This method is automatically called
+     * after the file has been loaded.
+     */
     @FXML
     private void initialize() {
-        // Initialize the ComboBox options. Don't fuck this up.
+        // Initialize the category ComboBox with fixed values
         categoryComboBox.setItems(FXCollections.observableArrayList("Hypercar", "LMGT3"));
     }
 
+    /**
+     * Sets the stage of this dialog.
+     *
+     * @param dialogStage
+     */
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
     }
 
     /**
-     * Sets the manufacturer to be edited in the dialog. If manufacturer is
-     * null, it's a new entry (Add).
+     * Sets the manufacturer to be edited in the dialog.
+     *
+     * @param manufacturer
      */
     public void setManufacturer(Manufacturer manufacturer) {
         this.manufacturer = manufacturer;
 
-        if (manufacturer != null) {
+        if (manufacturer.getManufacturerId() != 0) {
             idField.setText(String.valueOf(manufacturer.getManufacturerId()));
-            nameField.setText(manufacturer.getName());
-            countryField.setText(manufacturer.getCountry());
-            categoryComboBox.getSelectionModel().select(manufacturer.getCategory());
         } else {
-            // For new entries, clear the ID field and set defaults
-            idField.setText("");
+            idField.setText("New Entry");
         }
+        nameField.setText(manufacturer.getName());
+        countryField.setText(manufacturer.getCountry());
+        categoryComboBox.getSelectionModel().select(manufacturer.getCategory());
     }
 
+    /**
+     * Returns true if the user clicked OK, false otherwise.
+     *
+     * @return
+     */
     public boolean isOkClicked() {
         return okClicked;
     }
 
     /**
-     * Handles the OK button click. Validates and stores the data.
+     * Called when the user clicks ok (SAVE).
      */
     @FXML
     private void handleOk() {
         if (isInputValid()) {
-            // Update the Manufacturer object with new data
-            if (this.manufacturer == null) {
-                // This is an ADD operation (new Manufacturer object will be created in MasterDataController)
-            } else {
-                // This is an EDIT operation (update the existing object)
-                manufacturer.setName(nameField.getText());
-                manufacturer.setCountry(countryField.getText());
-                manufacturer.setCategory(categoryComboBox.getSelectionModel().getSelectedItem());
-            }
+            // Update the Manufacturer object properties
+            manufacturer.setName(nameField.getText());
+            manufacturer.setCountry(countryField.getText());
+            manufacturer.setCategory(categoryComboBox.getSelectionModel().getSelectedItem());
 
             okClicked = true;
             dialogStage.close();
@@ -77,7 +86,7 @@ public class ManufacturerEditDialogController {
     }
 
     /**
-     * Handles the Cancel button click.
+     * Called when the user clicks cancel.
      */
     @FXML
     private void handleCancel() {
@@ -85,30 +94,35 @@ public class ManufacturerEditDialogController {
     }
 
     /**
-     * Validates the user input. YOU BETTER DO THIS!
+     * Validates the user input in the text fields.
+     *
+     * * @return true if the input is valid
      */
     private boolean isInputValid() {
         String errorMessage = "";
 
-        if (nameField.getText() == null || nameField.getText().trim().isEmpty()) {
-            errorMessage += "No Manufacturer Name, you idiot!\n";
+        if (nameField.getText() == null || nameField.getText().length() == 0) {
+            errorMessage += "No valid manufacturer name entered!\n";
         }
-        if (countryField.getText() == null || countryField.getText().trim().isEmpty()) {
-            errorMessage += "No Country specified!\n";
+        if (countryField.getText() == null || countryField.getText().length() == 0) {
+            errorMessage += "No valid country entered!\n";
         }
-        if (categoryComboBox.getSelectionModel().getSelectedItem() == null) {
-            errorMessage += "You MUST select a Category (Hypercar or LMGT3)!\n";
+        if (categoryComboBox.getSelectionModel().isEmpty()) {
+            errorMessage += "No category selected!\n";
         }
 
-        if (errorMessage.isEmpty()) {
+        if (errorMessage.length() == 0) {
             return true;
         } else {
+            // Show the error message.
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.initOwner(dialogStage);
             alert.setTitle("Invalid Fields");
-            alert.setHeaderText("Please correct these garbage inputs:");
+            alert.setHeaderText("Please correct invalid fields");
             alert.setContentText(errorMessage);
+
             alert.showAndWait();
+
             return false;
         }
     }

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="850.0" prefWidth="1200.0" style="-fx-background-color: #1a1a1a;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="project.edgiaxel.controller.RaceManagementViewController">
+    <children>
+        <Label layoutX="14.0" layoutY="14.0" text="RACE WEEKEND CONTROL CENTER" textFill="#e50f0f">
+            <font><Font name="System Bold" size="24.0" /></font>
+        </Label>
+        
+        <VBox layoutX="14.0" layoutY="60.0" prefHeight="760.0" prefWidth="1172.0" spacing="15.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="60.0">
+           <children>
+               <HBox alignment="CENTER_LEFT" prefHeight="40.0" spacing="30.0" style="-fx-padding: 5; -fx-background-color: #2a2a2a; -fx-border-color: #e50f0f;">
+                  <children>
+                      <Label fx:id="seasonInfoLabel" text="SEASON: XXXX | ROUND: 1/8" textFill="WHITE">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                  </Label>
+                      <Label fx:id="circuitNameLabel" text="CIRCUIT: [CIRCUIT NAME] (X HOURS)" textFill="WHITE">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                  </Label>
+                      <Separator orientation="VERTICAL" />
+                      <Label fx:id="statusLabel" text="STATUS: READY FOR FP1" textFill="#00b386">
+                          <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                      </Label>
+                  </children>
+               </HBox>
+               
+               <HBox spacing="15.0" VBox.vgrow="ALWAYS">
+                  <children>
+                      <VBox prefHeight="680.0" prefWidth="250.0" spacing="10.0" style="-fx-background-color: #2a2a2a; -fx-padding: 10;">
+                         <children>
+                             <Label text="RACE WEEKEND PROGRESS:" textFill="WHITE">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </Label>
+                             <ListView fx:id="sessionListView" prefHeight="250.0" style="-fx-background-color: #3b3b3b; -fx-control-inner-background: #1c1c1c; -fx-text-fill: white;" VBox.vgrow="ALWAYS" />
+                             
+                             <Button fx:id="runSessionButton" mnemonicParsing="false" onAction="#handleRunSession" prefWidth="250.0" style="-fx-background-color: #3b82f6; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-padding: 10;" text="RUN SELECTED SESSION" />
+                             <Button fx:id="autoRunButton" mnemonicParsing="false" onAction="#handleAutoRunAll" prefWidth="250.0" style="-fx-background-color: #e50f0f; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-padding: 10;" text="AUTO RUN TO RACE END" />
+                             
+                             <Separator prefWidth="200.0" />
+                             
+                             <Button fx:id="nextRaceButton" disable="true" mnemonicParsing="false" onAction="#handleNextRace" prefWidth="250.0" style="-fx-background-color: #00b386; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-padding: 10;" text="PROCEED TO NEXT RACE" />
+                             <Button disable="true" mnemonicParsing="false" onAction="#handleFinishChampionship" prefWidth="250.0" style="-fx-background-color: #6a6a6a; -fx-text-fill: BLACK; -fx-font-weight: bold; -fx-padding: 10;" text="FINISH CHAMPIONSHIP" />
+                             <Button mnemonicParsing="false" onAction="#handleBackToDashboard" prefWidth="250.0" style="-fx-background-color: #404040; -fx-text-fill: WHITE;" text="BACK TO DASHBOARD" />
+                         </children>
+                      </VBox>
+                      
+                      <VBox prefHeight="680.0" prefWidth="900.0" HBox.hgrow="ALWAYS">
+                         <children>
+                             <TitledPane fx:id="resultPane" animated="false" collapsible="false" prefHeight="724.0" prefWidth="924.0" style="-fx-border-color: #e50f0f; -fx-text-fill: WHITE;" text="LATEST SESSION RESULTS: [SESSION NAME]" VBox.vgrow="ALWAYS">
+                                 <content>
+                                     <AnchorPane style="-fx-background-color: #1c1c1c; -fx-padding: 10;">
+                                        <children>
+                                            <VBox prefHeight="630.0" prefWidth="900.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                               <children>
+                                                   <Label text="OVERALL RACE RESULT (ALL ENTRIES)" textFill="WHITE">
+                                             <font>
+                                                <Font name="System Bold" size="14.0" />
+                                             </font>
+                                          </Label>
+                                                   <TableView fx:id="overallResultTable" prefHeight="200.0" style="-fx-background-color: #3b3b3b; -fx-control-inner-background: #1c1c1c; -fx-table-cell-border-color: #404040;" VBox.vgrow="ALWAYS" />
+                                                   
+                                                   <HBox spacing="10.0" VBox.vgrow="ALWAYS">
+                                                      <children>
+                                                          <VBox prefWidth="50.0" spacing="5.0" HBox.hgrow="ALWAYS">
+                                                             <children>
+                                                                 <Label text="HYPERCAR RESULT (TOP CLASS)" textFill="WHITE">
+                                                         <font>
+                                                            <Font name="System Bold" size="14.0" />
+                                                         </font>
+                                                      </Label>
+                                                                 <TableView fx:id="hypercarResultTable" prefHeight="150.0" style="-fx-background-color: #3b3b3b; -fx-control-inner-background: #1c1c1c; -fx-table-cell-border-color: #404040;" VBox.vgrow="ALWAYS" />
+                                                             </children>
+                                                          </VBox>
+                                                          <VBox prefWidth="50.0" spacing="5.0" HBox.hgrow="ALWAYS">
+                                                             <children>
+                                                                 <Label text="LMGT3 RESULT (GT CLASS)" textFill="WHITE">
+                                                         <font>
+                                                            <Font name="System Bold" size="14.0" />
+                                                         </font>
+                                                      </Label>
+                                                                 <TableView fx:id="gt3ResultTable" prefHeight="150.0" style="-fx-background-color: #3b3b3b; -fx-control-inner-background: #1c1c1c; -fx-table-cell-border-color: #404040;" VBox.vgrow="ALWAYS" />
+                                                             </children>
+                                                          </VBox>
+                                                      </children>
+                                                   </HBox>
+                                               </children>
+                                            </VBox>
+                                        </children>
+                                     </AnchorPane>
+                                 </content>
+                             </TitledPane>
+                         </children>
+                      </VBox>
+                  </children>
+               </HBox>
+           </children>
+        </VBox>
+    </children>
+</AnchorPane>

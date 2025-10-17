@@ -1,31 +1,28 @@
 package project.edgiaxel.model;
 
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 
 public class CarModel {
 
     private final IntegerProperty carModelId;
     private final IntegerProperty manufacturerId;
     private final StringProperty modelName;
-    private final IntegerProperty baseRating;
+    private final IntegerProperty baseRating; // BOP: 90-100 or 60-80
+    private final StringProperty imagePath; // New: Path to the specific car model image
 
+    // Constructor
     public CarModel(int carModelId, int manufacturerId, String modelName, int baseRating) {
         this.carModelId = new SimpleIntegerProperty(carModelId);
         this.manufacturerId = new SimpleIntegerProperty(manufacturerId);
         this.modelName = new SimpleStringProperty(modelName);
         this.baseRating = new SimpleIntegerProperty(baseRating);
+        // Placeholder path
+        this.imagePath = new SimpleStringProperty("/images/cars/" + modelName.replaceAll("\\s+", "_") + ".png");
     }
 
-    // -------------------- Properties --------------------
+    // --- Properties for TableView ---
     public IntegerProperty carModelIdProperty() {
         return carModelId;
-    }
-
-    public IntegerProperty manufacturerIdProperty() {
-        return manufacturerId;
     }
 
     public StringProperty modelNameProperty() {
@@ -36,7 +33,7 @@ public class CarModel {
         return baseRating;
     }
 
-    // -------------------- Getters --------------------
+    // --- Getters ---
     public int getCarModelId() {
         return carModelId.get();
     }
@@ -53,25 +50,34 @@ public class CarModel {
         return baseRating.get();
     }
 
-    // -------------------- Setters --------------------
-    public void setCarModelId(int value) {
-        this.carModelId.set(value);
+    public String getImagePath() {
+        return imagePath.get();
     }
 
-    public void setManufacturerId(int value) {
-        this.manufacturerId.set(value);
+    // --- Setters ---
+    public void setCarModelId(int carModelId) {
+        this.carModelId.set(carModelId);
     }
 
-    public void setModelName(String value) {
-        this.modelName.set(value);
+    public void setManufacturerId(int manufacturerId) {
+        this.manufacturerId.set(manufacturerId);
     }
 
-    public void setBaseRating(int value) {
-        this.baseRating.set(value);
+    public void setModelName(String modelName) {
+        this.modelName.set(modelName);
     }
 
+    public void setBaseRating(int baseRating) {
+        this.baseRating.set(baseRating);
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath.set(imagePath);
+    }
+
+    // Override toString
     @Override
     public String toString() {
-        return getModelName();
+        return modelName.get() + " (BOP: " + baseRating.get() + ")";
     }
 }

@@ -1,9 +1,6 @@
 package project.edgiaxel.model;
 
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 
 public class Driver {
 
@@ -12,6 +9,7 @@ public class Driver {
     private final StringProperty lastName;
     private final StringProperty nationality;
 
+    // Constructor
     public Driver(int driverId, String firstName, String lastName, String nationality) {
         this.driverId = new SimpleIntegerProperty(driverId);
         this.firstName = new SimpleStringProperty(firstName);
@@ -19,11 +17,7 @@ public class Driver {
         this.nationality = new SimpleStringProperty(nationality);
     }
 
-    // Properties
-    public IntegerProperty driverIdProperty() {
-        return driverId;
-    }
-
+    // --- Properties for TableView ---
     public StringProperty firstNameProperty() {
         return firstName;
     }
@@ -36,7 +30,7 @@ public class Driver {
         return nationality;
     }
 
-    // Getters
+    // --- Getters ---
     public int getDriverId() {
         return driverId.get();
     }
@@ -53,7 +47,11 @@ public class Driver {
         return nationality.get();
     }
 
-    // Setters
+    // --- Setters ---
+    public void setDriverId(int driverId) {
+        this.driverId.set(driverId);
+    }
+
     public void setFirstName(String firstName) {
         this.firstName.set(firstName);
     }
@@ -66,8 +64,13 @@ public class Driver {
         this.nationality.set(nationality);
     }
 
+    public String getFullName() {
+        return firstName.get() + " " + lastName.get();
+    }
+
+    // Override toString
     @Override
     public String toString() {
-        return getFirstName() + " " + getLastName() + " (" + getNationality() + ")";
+        return getFullName() + " (" + nationality.get() + ")";
     }
 }

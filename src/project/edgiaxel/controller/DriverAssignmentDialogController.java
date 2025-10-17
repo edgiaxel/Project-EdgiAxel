@@ -1,44 +1,55 @@
 package project.edgiaxel.controller;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.control.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import project.edgiaxel.dao.DriverDAO;
+import project.edgiaxel.dao.TeamDAO;
 import project.edgiaxel.model.Driver;
 import project.edgiaxel.model.Team;
-import project.edgiaxel.util.DBUtil;
+
+import java.io.IOException;
+import javafx.scene.Scene;
+import javafx.scene.layout.AnchorPane;
 
 public class DriverAssignmentDialogController {
 
     @FXML
     private Label teamLabel;
     @FXML
-    private Label driverCountLabel;
-    @FXML
     private ListView<Driver> availableDriverList;
     @FXML
     private ListView<Driver> teamDriverList;
+    @FXML
+    private Label driverCountLabel;
 
     private Stage dialogStage;
     private Team team;
     private ObservableList<Driver> allDrivers;
-    private ObservableList<Driver> currentRoster;
-    private boolean changesMade = false;
+    private ObservableList<Driver> currentTeamDrivers;
+    private final TeamDAO teamDAO = TeamDAO.getInstance();
+    private final DriverDAO driverDAO = DriverDAO.getInstance();
 
-    // --- SETUP ---
     @FXML
     private void initialize() {
-        // Driver count constraints for WEC
-        updateDriverCountLabel(0);
+        // Set the cell factories to display full names
+        availableDriverList.setCellFactory(lv -> new ListCell<Driver>() {
+            @Override
+            protected void updateItem(Driver driver, boolean empty) {
+                super.updateItem(driver, empty);
+                setText(empty ? null : driver.getFullName() + " (" + driver.getNationality() + ")");
+            }
+        });
+        teamDriverList.setCellFactory(lv -> new ListCell<Driver>() {
+            @Override
+            protected void updateItem(Driver driver, boolean empty) {
+                super.updateItem(driver, empty);
+                setText(empty ? null : driver.getFullName() + " (" + driver.getNationality() + ")");
+            }
+        });
     }
 
     public void setDialogStage(Stage dialogStage) {
@@ -47,36 +58,36 @@ public class DriverAssignmentDialogController {
 
     public void setTeam(Team team) {
         this.team = team;
-        teamLabel.setText(String.format("Selected Team: #%s %s", team.getCarNumber(), team.getTeamName()));
+        teamLabel.setText("Selected Team: #" + team.getCarNumber() + " " + team.getTeamName() + " - " + team.getCategory());
 
-        // 1. Load All Drivers (Mutable Master List)
-        allDrivers = DBUtil.getAllDrivers();
-
-        // 2. Load Current Roster (Mutable List)
-        // NOTE: This MUST be a mutable copy, not the one directly from DBUtil if the DBUtil returns an immutable list.
-        currentRoster = DBUtil.getDriversByTeam(team.getTeamId());
-
-        // 3. Create a SEPARATE, MUTABLE list for the Available Drivers
-        ObservableList<Driver> mutableAvailableDrivers = FXCollections.observableArrayList(allDrivers);
-
-        // 4. Remove current team members from the mutable list.
-        // This is much safer than relying on FilteredList for a two-list transfer.
-        mutableAvailableDrivers.removeAll(currentRoster);
-
-        // 5. Set the lists to the ListViews
-        availableDriverList.setItems(mutableAvailableDrivers);
-        teamDriverList.setItems(currentRoster);
-
-        updateDriverCountLabel(currentRoster.size());
+        // Load all drivers and initialize lists
+        loadDriverData();
+        updateLists();
     }
 
-    // --- LOGIC ---
-    private void updateDriverCountLabel(int count) {
-        driverCountLabel.setText(String.format("Total: %d/3 (Min/Max)", count));
-        if (count < 3 || count > 4) { // Warning if not 3 or 4, 4 is usually Le Mans/placeholder
-            driverCountLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+    private void loadDriverData() {
+        allDrivers = driverDAO.getAllDrivers();
+        // Create a working copy of the current team drivers
+        currentTeamDrivers = FXCollections.observableArrayList(teamDAO.getDriversForTeam(team.getTeamId()));
+    }
+
+    private void updateLists() {
+        ObservableList<Driver> available = FXCollections.observableArrayList(allDrivers);
+        available.removeAll(currentTeamDrivers); // Remove drivers already assigned
+
+        availableDriverList.setItems(available);
+        teamDriverList.setItems(currentTeamDrivers);
+        updateDriverCount();
+    }
+
+    private void updateDriverCount() {
+        int count = currentTeamDrivers.size();
+        driverCountLabel.setText("Total: " + count + " / 4 (Min 3 / Max 4)");
+
+        if (count < 3 || count > 4) {
+            driverCountLabel.setStyle("-fx-text-fill: #e50f0f; -fx-font-weight: bold;"); // Red for invalid count
         } else {
-            driverCountLabel.setStyle("-fx-text-fill: black;");
+            driverCountLabel.setStyle("-fx-text-fill: #00b386; -fx-font-weight: bold;"); // Green for valid count
         }
     }
 
@@ -84,11 +95,12 @@ public class DriverAssignmentDialogController {
     private void handleAssignDriver() {
         Driver selectedDriver = availableDriverList.getSelectionModel().getSelectedItem();
         if (selectedDriver != null) {
-            // Move driver from available to team roster
-            currentRoster.add(selectedDriver);
-            availableDriverList.getItems().remove(selectedDriver);
-            updateDriverCountLabel(currentRoster.size());
-            changesMade = true;
+            if (currentTeamDrivers.size() < 4) {
+                currentTeamDrivers.add(selectedDriver);
+                updateLists();
+            } else {
+                showAlert("Limit Reached", "A team cannot have more than 4 drivers.");
+            }
         }
     }
 
@@ -96,71 +108,75 @@ public class DriverAssignmentDialogController {
     private void handleRemoveDriver() {
         Driver selectedDriver = teamDriverList.getSelectionModel().getSelectedItem();
         if (selectedDriver != null) {
-            // Move driver from team roster back to available
-            availableDriverList.getItems().add(selectedDriver);
-            teamDriverList.getItems().remove(selectedDriver);
-            updateDriverCountLabel(currentRoster.size());
-            changesMade = true;
+            currentTeamDrivers.remove(selectedDriver);
+            updateLists();
         }
     }
 
     @FXML
     private void handleNewDriver() {
-        // Open the small dialog to add a new driver globally
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/DriverSimpleEditDialog.fxml"));
-            AnchorPane page = (AnchorPane) loader.load();
-
-            Stage newDriverStage = new Stage();
-            newDriverStage.setTitle("Add New Global Driver");
-            newDriverStage.initModality(Modality.WINDOW_MODAL);
-            newDriverStage.initOwner(dialogStage);
-            newDriverStage.setScene(new Scene(page));
-
-            DriverSimpleEditDialogController controller = loader.getController();
-            controller.setDialogStage(newDriverStage);
-
-            newDriverStage.showAndWait();
-
-            if (controller.isOkClicked()) {
-                Driver newDriver = controller.getNewDriver();
-                DBUtil.insertDriver(newDriver);
-
-                // Add new driver to both master list and available list
-                allDrivers.add(newDriver);
-                availableDriverList.getItems().add(newDriver);
-                availableDriverList.getSelectionModel().select(newDriver); // Select the new driver
+        Driver newDriver = new Driver(0, "", "", "");
+        boolean okClicked = showDriverSimpleEditDialog(newDriver);
+        if (okClicked) {
+            if (driverDAO.insertDriver(newDriver)) {
+                loadDriverData(); // Reload all drivers to include the new one
+                updateLists(); // Refresh lists
+            } else {
+                showAlert("Error", "Failed to add new driver to the database.");
             }
-        } catch (IOException | SQLException e) {
-            new Alert(Alert.AlertType.ERROR, "Failed to add new driver: " + e.getMessage()).showAndWait();
-            e.printStackTrace();
         }
     }
 
-    // --- SAVE/CANCEL ---
     @FXML
     private void handleSave() {
-        if (currentRoster.size() < 3) {
-            new Alert(Alert.AlertType.WARNING, "Roster must have at least 3 drivers for WEC!").showAndWait();
+        int count = currentTeamDrivers.size();
+        if (count < 3 || count > 4) {
+            showAlert("Driver Count Error", "A team must have between 3 and 4 drivers to be saved!");
             return;
         }
 
-        if (changesMade) {
-            try {
-                // Perform the commit: DELETE old roster and INSERT new one
-                DBUtil.updateTeamRoster(team.getTeamId(), currentRoster);
-                team.setDrivers(currentRoster); // Update the underlying model list
-                new Alert(Alert.AlertType.INFORMATION, "Team Roster for #" + team.getCarNumber() + " updated successfully!").showAndWait();
-            } catch (SQLException e) {
-                new Alert(Alert.AlertType.ERROR, "Failed to save roster changes: " + e.getMessage()).showAndWait();
-                return;
-            }
+        if (teamDAO.saveTeamDrivers(team.getTeamId(), currentTeamDrivers)) {
+            showAlert("Success", "Driver assignments saved successfully.");
+            dialogStage.close();
+        } else {
+            showAlert("Error", "Failed to save driver assignments to the database.");
         }
-        dialogStage.close();
     }
 
     @FXML
     private void handleCancel() {
         dialogStage.close();
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private boolean showDriverSimpleEditDialog(Driver driver) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/DriverSimpleEditDialog.fxml"));
+            AnchorPane page = (AnchorPane) loader.load();
+
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Add New Driver");
+            dialogStage.initModality(Modality.WINDOW_MODAL);
+            dialogStage.initOwner(this.dialogStage);
+            Scene scene = new Scene(page);
+            dialogStage.setScene(scene);
+
+            DriverSimpleEditDialogController controller = loader.getController();
+            controller.setDialogStage(dialogStage);
+            controller.setDriver(driver);
+
+            dialogStage.showAndWait();
+            return controller.isOkClicked();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

@@ -1,9 +1,6 @@
 package project.edgiaxel.model;
 
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 
 public class Manufacturer {
 
@@ -11,15 +8,18 @@ public class Manufacturer {
     private final StringProperty name;
     private final StringProperty country;
     private final StringProperty category; // Hypercar or LMGT3
+    private final StringProperty logoPath; // For MasterDataView image
 
+    // Constructor
     public Manufacturer(int manufacturerId, String name, String country, String category) {
         this.manufacturerId = new SimpleIntegerProperty(manufacturerId);
         this.name = new SimpleStringProperty(name);
         this.country = new SimpleStringProperty(country);
         this.category = new SimpleStringProperty(category);
+        this.logoPath = new SimpleStringProperty("/images/manufacturers/" + name.replaceAll("\\s+", "_") + "_logo.png");
     }
 
-    // Properties
+    // --- Properties for TableView ---
     public IntegerProperty manufacturerIdProperty() {
         return manufacturerId;
     }
@@ -36,7 +36,11 @@ public class Manufacturer {
         return category;
     }
 
-    // Getters
+    public StringProperty logoPathProperty() {
+        return logoPath;
+    }
+
+    // --- Getters ---
     public int getManufacturerId() {
         return manufacturerId.get();
     }
@@ -53,7 +57,15 @@ public class Manufacturer {
         return category.get();
     }
 
-    // Setters
+    public String getLogoPath() {
+        return logoPath.get();
+    }
+
+    // --- Setters ---
+    public void setManufacturerId(int manufacturerId) {
+        this.manufacturerId.set(manufacturerId);
+    }
+
     public void setName(String name) {
         this.name.set(name);
     }
@@ -66,8 +78,13 @@ public class Manufacturer {
         this.category.set(category);
     }
 
+    public void setLogoPath(String logoPath) {
+        this.logoPath.set(logoPath);
+    }
+
+    // --- ToString() ---
     @Override
     public String toString() {
-        return getName();
+        return name.get() + " (" + category.get() + ")";
     }
 }

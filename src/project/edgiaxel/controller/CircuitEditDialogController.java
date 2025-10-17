@@ -10,12 +10,18 @@ import project.edgiaxel.model.Circuit;
 
 public class CircuitEditDialogController {
 
-    @FXML private TextField idField;
-    @FXML private TextField nameField;
-    @FXML private TextField locationField;
-    @FXML private TextField countryField;
-    @FXML private TextField lengthField;
-    @FXML private ComboBox<String> raceTypeComboBox;
+    @FXML
+    private TextField idField;
+    @FXML
+    private TextField nameField;
+    @FXML
+    private TextField locationField;
+    @FXML
+    private TextField countryField;
+    @FXML
+    private TextField lengthField;
+    @FXML
+    private ComboBox<String> raceTypeComboBox;
 
     private Stage dialogStage;
     private Circuit circuit;
@@ -23,7 +29,7 @@ public class CircuitEditDialogController {
 
     @FXML
     private void initialize() {
-        // Initialize the ComboBox options based on WEC rules
+        // Initialize the ComboBox with the WEC defined race types
         raceTypeComboBox.setItems(FXCollections.observableArrayList("6 Hours", "8–10 Hours", "24 Hours"));
     }
 
@@ -34,16 +40,16 @@ public class CircuitEditDialogController {
     public void setCircuit(Circuit circuit) {
         this.circuit = circuit;
 
-        if (circuit != null) {
+        if (circuit.getCircuitId() != 0) {
             idField.setText(String.valueOf(circuit.getCircuitId()));
-            nameField.setText(circuit.getName());
-            locationField.setText(circuit.getLocation());
-            countryField.setText(circuit.getCountry());
-            lengthField.setText(String.format("%.3f", circuit.getLengthKm()));
-            raceTypeComboBox.getSelectionModel().select(circuit.getRaceType());
         } else {
-            idField.setText("");
+            idField.setText("New Entry");
         }
+        nameField.setText(circuit.getName());
+        locationField.setText(circuit.getLocation());
+        countryField.setText(circuit.getCountry());
+        lengthField.setText(String.valueOf(circuit.getLengthKm()));
+        raceTypeComboBox.getSelectionModel().select(circuit.getRaceType());
     }
 
     public boolean isOkClicked() {
@@ -53,19 +59,11 @@ public class CircuitEditDialogController {
     @FXML
     private void handleOk() {
         if (isInputValid()) {
-            // Update the Circuit object with new data
-            double length = Double.parseDouble(lengthField.getText().trim());
-
-            if (this.circuit == null) {
-                // This is an ADD operation (new Circuit object created in MasterDataController)
-            } else {
-                // This is an EDIT operation
-                circuit.setName(nameField.getText());
-                circuit.setLocation(locationField.getText());
-                circuit.setCountry(countryField.getText());
-                circuit.setLengthKm(length);
-                circuit.setRaceType(raceTypeComboBox.getSelectionModel().getSelectedItem());
-            }
+            circuit.setName(nameField.getText());
+            circuit.setLocation(locationField.getText());
+            circuit.setCountry(countryField.getText());
+            circuit.setLengthKm(Double.parseDouble(lengthField.getText()));
+            circuit.setRaceType(raceTypeComboBox.getSelectionModel().getSelectedItem());
 
             okClicked = true;
             dialogStage.close();
@@ -77,48 +75,44 @@ public class CircuitEditDialogController {
         dialogStage.close();
     }
 
-    /**
-     * Validates the user input, especially the length field.
-     */
     private boolean isInputValid() {
         String errorMessage = "";
-        String lengthText = lengthField.getText();
 
-        if (nameField.getText() == null || nameField.getText().trim().isEmpty()) {
-            errorMessage += "Circuit Name is mandatory!\n";
+        if (nameField.getText() == null || nameField.getText().length() == 0) {
+            errorMessage += "No valid circuit name!\n";
         }
-        if (locationField.getText() == null || locationField.getText().trim().isEmpty()) {
-            errorMessage += "Circuit Location (City) is mandatory!\n";
+        if (locationField.getText() == null || locationField.getText().isEmpty()) {
+            errorMessage += "No valid location!\n";
         }
-        if (countryField.getText() == null || countryField.getText().trim().isEmpty()) {
-            errorMessage += "Circuit Country is mandatory!\n";
+        if (countryField.getText() == null || countryField.getText().isEmpty()) {
+            errorMessage += "No valid country!\n";
         }
-        if (raceTypeComboBox.getSelectionModel().getSelectedItem() == null) {
-            errorMessage += "Race Duration (e.g., 6 Hours) must be selected!\n";
-        }
-        
-        // --- NUMERIC VALIDATION ---
-        if (lengthText == null || lengthText.trim().isEmpty()) {
-            errorMessage += "Circuit Length is mandatory!\n";
+
+        String lengthText = lengthField.getText();
+        if (lengthText == null || lengthText.length() == 0) {
+            errorMessage += "No valid length entered!\n";
         } else {
-            // Try to parse the length as a double
             try {
-                double length = Double.parseDouble(lengthText.trim());
+                double length = Double.parseDouble(lengthText);
                 if (length <= 0) {
-                    errorMessage += "Circuit Length must be a positive number, dumbass.\n";
+                    errorMessage += "Length must be positive!\n";
                 }
             } catch (NumberFormatException e) {
-                errorMessage += "Circuit Length must be a valid number (e.g., 5.419)!\n";
+                errorMessage += "Length is not a valid number (use decimal point)! (e.g., 5.419)\n";
             }
         }
 
-        if (errorMessage.isEmpty()) {
+        if (raceTypeComboBox.getSelectionModel().isEmpty()) {
+            errorMessage += "No race duration selected!\n";
+        }
+
+        if (errorMessage.length() == 0) {
             return true;
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.initOwner(dialogStage);
-            alert.setTitle("Invalid Circuit Data");
-            alert.setHeaderText("Fix these errors or I'll smash your keyboard:");
+            alert.setTitle("Invalid Fields");
+            alert.setHeaderText("Please correct invalid fields");
             alert.setContentText(errorMessage);
             alert.showAndWait();
             return false;

@@ -1,33 +1,31 @@
 package project.edgiaxel.controller;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Optional;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
+import project.edgiaxel.dao.ManufacturerDAO;
+import project.edgiaxel.dao.TeamDAO;
+import project.edgiaxel.dao.CircuitDAO;
 import project.edgiaxel.model.Manufacturer;
-import project.edgiaxel.model.Circuit;
 import project.edgiaxel.model.Team;
 import project.edgiaxel.model.Driver;
-import project.edgiaxel.model.CarModel;
-import project.edgiaxel.util.DBUtil;
+import project.edgiaxel.model.Circuit;
+
+import java.io.IOException;
+import java.util.Optional;
 
 public class MasterDataViewController {
+// --- FXML Components ---
 
     @FXML
     private TableView<Manufacturer> manufacturerTable;
@@ -36,197 +34,412 @@ public class MasterDataViewController {
     @FXML
     private TableView<Driver> driverTable;
     @FXML
+    private Label teamHeader;
+    @FXML
+    private Label driverHeader;
+    @FXML
+    private ImageView masterImageView;
+    @FXML
+    private Label imageStatusLabel;
+    @FXML
     private TableView<Circuit> circuitTable;
+    @FXML
+    private ImageView circuitImageView;
+    @FXML
+    private Label circuitStatusLabel;
 
-    // List to hold all teams, used for filtering by manufacturer
-    private ObservableList<Team> allTeams = FXCollections.observableArrayList();
-    private ObservableList<CarModel> allCarModels = FXCollections.observableArrayList();
+    // --- Data DAOs (Using Singleton Instances as planned) ---
+    private final ManufacturerDAO manufacturerDAO = ManufacturerDAO.getInstance();
+    private final TeamDAO teamDAO = TeamDAO.getInstance();
+    private final CircuitDAO circuitDAO = CircuitDAO.getInstance();
 
+    // --- Initialization ---
     @FXML
     private void initialize() {
-        // Step 1: Initialize all data loading
-        loadAllData();
-
-        // Step 2: Set up all columns
+        // Initialize Manufacturer Table
         setupManufacturerTable();
-        setupTeamTable();
-        setupDriverTable();
-        setupCircuitTable();
-
-        // Step 3: Set up event listeners (The logic glue)
+        loadManufacturerData();
         manufacturerTable.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> filterTeamsByManufacturer(newValue));
+                (observable, oldValue, newValue) -> showManufacturerDetails(newValue));
 
+        // Initialize Team Table
+        setupTeamTable();
         teamTable.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> showDriversForSelectedTeam(newValue));
+                (observable, oldValue, newValue) -> showTeamDetails(newValue));
+
+        // Initialize Driver Table 
+        setupDriverTable();
+
+        // Initialize Circuit Table
+        setupCircuitTable();
+        loadCircuitData();
+        circuitTable.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) -> showCircuitDetails(newValue));
     }
+    
+    
+    
+    
+    
 
-    // --- DATA LOADING & INITIAL SETUP ---
-    // Inside MasterDataViewController.java
-// --- DATA LOADING & INITIAL SETUP (UPDATED) ---
-    private void loadAllData() {
-        // Clear all lists before refreshing
-        allTeams.clear();
-        allCarModels.clear(); // <-- NEW LINE
-
-        // Load and set data.
-        manufacturerTable.setItems(DBUtil.getAllManufacturers());
-        allTeams.addAll(DBUtil.getAllTeams());
-        allCarModels.addAll(DBUtil.getAllCarModels()); // <-- NEW LINE
-        circuitTable.setItems(DBUtil.getAllCircuits());
-
-        // Clear filtered views
-        teamTable.getItems().clear();
-        driverTable.getItems().clear();
-
-        System.out.println("Loaded/Refreshed All Master Data. Total teams loaded: " + allTeams.size());
-    }
-
+    // --- Table Setup Methods ---
     private void setupManufacturerTable() {
-        TableColumn<Manufacturer, Integer> mIdCol = new TableColumn<>("ID");
-        mIdCol.setCellValueFactory(cellData -> cellData.getValue().manufacturerIdProperty().asObject());
-        mIdCol.setPrefWidth(50);
-
-        TableColumn<Manufacturer, String> mNameCol = new TableColumn<>("Manufacturer Name");
-        mNameCol.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
-        mNameCol.setPrefWidth(200);
-
-        TableColumn<Manufacturer, String> mCategoryCol = new TableColumn<>("Category");
-        mCategoryCol.setCellValueFactory(cellData -> cellData.getValue().categoryProperty());
-
-        manufacturerTable.getColumns().addAll(mIdCol, mNameCol, mCategoryCol);
+        manufacturerTable.getColumns().clear();
+        TableColumn<Manufacturer, Integer> idCol = new TableColumn<>("ID");
+        idCol.setCellValueFactory(new PropertyValueFactory<>("manufacturerId"));
+        idCol.setPrefWidth(50);
+        TableColumn<Manufacturer, String> nameCol = new TableColumn<>("Name");
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        nameCol.setPrefWidth(200);
+        TableColumn<Manufacturer, String> categoryCol = new TableColumn<>("Category");
+        categoryCol.setCellValueFactory(new PropertyValueFactory<>("category"));
+        categoryCol.setPrefWidth(100);
+        manufacturerTable.getColumns().setAll(idCol, nameCol, categoryCol);
     }
 
     private void setupTeamTable() {
-        TableColumn<Team, String> carNumCol = new TableColumn<>("Car #");
-        carNumCol.setCellValueFactory(cellData -> cellData.getValue().carNumberProperty());
-        carNumCol.setPrefWidth(60);
-
+        teamTable.getColumns().clear();
+        TableColumn<Team, String> carNumberCol = new TableColumn<>("#");
+        carNumberCol.setCellValueFactory(new PropertyValueFactory<>("carNumber"));
+        carNumberCol.setPrefWidth(50);
         TableColumn<Team, String> teamNameCol = new TableColumn<>("Team Name");
-        teamNameCol.setCellValueFactory(cellData -> cellData.getValue().teamNameProperty());
+        teamNameCol.setCellValueFactory(new PropertyValueFactory<>("teamName"));
         teamNameCol.setPrefWidth(250);
-
-        TableColumn<Team, String> modelCol = new TableColumn<>("Car Model");
-        // This column needs special handling to display the CarModel name instead of just the ID
-        modelCol.setCellValueFactory(cellData -> {
-            int carModelId = ((Team) cellData.getValue()).carModelId.get();
-            CarModel model = DBUtil.getCarModelById(carModelId);
-            return model != null ? model.modelNameProperty() : new SimpleStringProperty("UNKNOWN");
-        });
-        modelCol.setPrefWidth(200);
-
-        TableColumn<Team, String> teamNatCol = new TableColumn<>("Nationality");
-        teamNatCol.setCellValueFactory(cellData -> cellData.getValue().nationalityProperty());
-
-        teamTable.getColumns().addAll(carNumCol, teamNameCol, modelCol, teamNatCol);
+        TableColumn<Team, String> carModelCol = new TableColumn<>("Car Model");
+        carModelCol.setCellValueFactory(new PropertyValueFactory<>("carModelName"));
+        carModelCol.setPrefWidth(200);
+        teamTable.getColumns().setAll(carNumberCol, teamNameCol, carModelCol);
     }
 
     private void setupDriverTable() {
-        TableColumn<Driver, String> dFirstCol = new TableColumn<>("First Name");
-        dFirstCol.setCellValueFactory(cellData -> cellData.getValue().firstNameProperty());
-
-        TableColumn<Driver, String> dLastCol = new TableColumn<>("Last Name");
-        dLastCol.setCellValueFactory(cellData -> cellData.getValue().lastNameProperty());
-
-        TableColumn<Driver, String> dNatCol = new TableColumn<>("Nationality");
-        dNatCol.setCellValueFactory(cellData -> cellData.getValue().nationalityProperty());
-
-        driverTable.getColumns().addAll(dFirstCol, dLastCol, dNatCol);
+        driverTable.getColumns().clear();
+        TableColumn<Driver, Integer> driverIdCol = new TableColumn<>("ID");
+        driverIdCol.setCellValueFactory(new PropertyValueFactory<>("driverId"));
+        driverIdCol.setPrefWidth(50);
+        TableColumn<Driver, String> nameCol = new TableColumn<>("Name");
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("fullName"));
+        nameCol.setPrefWidth(250);
+        TableColumn<Driver, String> nationalityCol = new TableColumn<>("Nationality"); // Re-adding the nationality column
+        nationalityCol.setCellValueFactory(new PropertyValueFactory<>("nationality"));
+        nationalityCol.setPrefWidth(150);
+        driverTable.getColumns().setAll(driverIdCol, nameCol, nationalityCol);
     }
 
     private void setupCircuitTable() {
-        TableColumn<Circuit, Integer> cIdCol = new TableColumn<>("ID");
-        cIdCol.setCellValueFactory(cellData -> cellData.getValue().circuitIdProperty().asObject());
-        cIdCol.setPrefWidth(50);
+        circuitTable.getColumns().clear();
+        TableColumn<Circuit, String> nameCol = new TableColumn<>("Circuit Name");
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        nameCol.setPrefWidth(250);
+        TableColumn<Circuit, Double> lengthCol = new TableColumn<>("Length (km)");
+        lengthCol.setCellValueFactory(new PropertyValueFactory<>("lengthKm"));
+        lengthCol.setPrefWidth(120);
+        TableColumn<Circuit, String> raceTypeCol = new TableColumn<>("Race Type");
+        raceTypeCol.setCellValueFactory(new PropertyValueFactory<>("raceType"));
+        raceTypeCol.setPrefWidth(150);
+        circuitTable.getColumns().setAll(nameCol, lengthCol, raceTypeCol);
+    }
+    
+    
+    
+    
+    
+    
 
-        TableColumn<Circuit, String> cNameCol = new TableColumn<>("Circuit Name");
-        cNameCol.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
-        cNameCol.setPrefWidth(200);
-
-        TableColumn<Circuit, Number> cLengthCol = new TableColumn<>("Length (km)");
-        cLengthCol.setCellValueFactory(cellData -> cellData.getValue().lengthKmProperty());
-        cLengthCol.setPrefWidth(100);
-
-        TableColumn<Circuit, String> cRaceTypeCol = new TableColumn<>("Race Type");
-        cRaceTypeCol.setCellValueFactory(cellData -> cellData.getValue().raceTypeProperty());
-
-        circuitTable.getColumns().addAll(cIdCol, cNameCol, cLengthCol, cRaceTypeCol);
+    // --- Data Loading and Selection Handlers ---
+    private void loadManufacturerData() {
+        manufacturerTable.setItems(manufacturerDAO.getAllManufacturers());
+        // Clear dependent tables
+        teamTable.getItems().clear();
+        driverTable.getItems().clear();
+        teamHeader.setText("2. TEAM ENTRIES (Select Manufacturer Above)");
+        driverHeader.setText("3. DRIVERS (Current Roster for Selected Team)");
+        masterImageView.setImage(null);
+        imageStatusLabel.setText("Select Manufacturer or Team for Image");
     }
 
-    // --- HIERARCHICAL LISTENER LOGIC ---
-    // 1. Filter teams based on selected manufacturer
-    private void filterTeamsByManufacturer(Manufacturer manufacturer) {
-        if (manufacturer == null) {
-            teamTable.setItems(null);
-            driverTable.setItems(null);
-            return;
-        }
-
-        // Filter all teams to only show ones belonging to the selected manufacturer
-        ObservableList<Team> filteredTeams = allTeams.filtered(
-                team -> {
-                    CarModel model = DBUtil.getCarModelById(team.carModelId.get());
-                    return model != null && model.getManufacturerId() == manufacturer.getManufacturerId();
-                }
-        );
-        teamTable.setItems(filteredTeams);
-        driverTable.setItems(null); // Clear driver table when manufacturer changes
+    private void loadCircuitData() {
+        circuitTable.setItems(circuitDAO.getAllCircuits());
+        circuitImageView.setImage(null);
+        circuitStatusLabel.setText("Select a Circuit to view its map and stats.");
     }
 
-    // 2. Show drivers based on selected team
-    private void showDriversForSelectedTeam(Team team) {
-        if (team == null) {
-            driverTable.setItems(null);
-            return;
-        }
-
-        // Fetch drivers from DB using the team ID
-        ObservableList<Driver> drivers = DBUtil.getDriversByTeam(team.getTeamId());
-        driverTable.setItems(drivers);
-
-        // Throw a fit if the data is wrong
-        if (drivers.size() < 3 || drivers.size() > 4) { // Real WEC usually uses 3, sometimes 4 for Le Mans or placeholders
-            new Alert(Alert.AlertType.WARNING, "TEAM " + team.getCarNumber() + " HAS " + drivers.size() + " DRIVERS! YOU NEED 3 MINIMUM FOR THE SIMULATOR, FIX IT!").showAndWait();
+    private void showManufacturerDetails(Manufacturer manufacturer) {
+        if (manufacturer != null) {
+            teamHeader.setText("2. TEAM ENTRIES for: " + manufacturer.getName());
+            
+            // Load Teams related to the selected manufacturer
+            teamTable.setItems(teamDAO.getTeamsByManufacturerId(manufacturer.getManufacturerId()));
+            
+            driverTable.getItems().clear();
+            driverHeader.setText("3. DRIVERS (Current Roster for Selected Team)");
+            
+            // Load Manufacturer Image (Logo)
+            try {
+                // Assuming image paths are valid resource paths
+                Image logo = new Image(getClass().getResourceAsStream(manufacturer.getLogoPath()));
+                masterImageView.setImage(logo);
+                imageStatusLabel.setText(manufacturer.getName() + " Logo.");
+            } catch (Exception e) {
+                masterImageView.setImage(null);
+                imageStatusLabel.setText("Could not load logo for " + manufacturer.getName() + ".");
+            }
+        } else {
+            loadManufacturerData();
         }
     }
 
-    // --- NAVIGATION & CRUD PLACEHOLDERS (ADD THE NEW TEAM/DRIVER PLACEHOLDERS) ---
-    private void switchScene(ActionEvent event, String fxmlPath) throws IOException {
-        Parent root = FXMLLoader.load(getClass().getResource(fxmlPath));
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
+    private void showTeamDetails(Team team) {
+        if (team != null) {
+            driverHeader.setText("3. DRIVERS for: " + team.getTeamName() + " #" + team.getCarNumber());
+            
+            // Load Drivers related to the selected team (drivers are already fetched by TeamDAO's getTeamsByManufacturerId)
+            driverTable.setItems(team.getDrivers()); 
+            
+            // Load Team Image (Livery)
+            try {
+                // Assuming image paths are valid resource paths
+                Image livery = new Image(getClass().getResourceAsStream(team.getLiveryPath()));
+                masterImageView.setImage(livery);
+                imageStatusLabel.setText(team.getTeamName() + " Livery #" + team.getCarNumber() + ".");
+            } catch (Exception e) {
+                masterImageView.setImage(null);
+                imageStatusLabel.setText("Could not load livery for " + team.getTeamName() + ".");
+            }
+        } else {
+             driverTable.getItems().clear();
+        }
+    }
+    
+    private void showCircuitDetails(Circuit circuit) {
+        if (circuit != null) {
+              // Load Circuit Image (Map)
+            try {
+                Image map = new Image(getClass().getResourceAsStream(circuit.getMapPath()));
+                circuitImageView.setImage(map);
+                circuitStatusLabel.setText(circuit.getName() + " Circuit Map.\nLength: " + circuit.getLengthKm() + "km, Race: " + circuit.getRaceType() + ".");
+            } catch (Exception e) {
+                circuitImageView.setImage(null);
+                circuitStatusLabel.setText("Could not load map for " + circuit.getName() + ".");
+            }
+        } else {
+              circuitImageView.setImage(null);
+              circuitStatusLabel.setText("Select a Circuit to view its map and stats.");
+        }
+    }
+    
+    
+    
+    
+    
+    
+
+    // --- Manufacturer CRUD Handlers ---
+    @FXML
+    private void handleAddManufacturer() {
+        Manufacturer newManufacturer = new Manufacturer(0, "", "", "Hypercar"); // Default
+        boolean okClicked = showManufacturerEditDialog(newManufacturer);
+        if (okClicked) {
+            if (manufacturerDAO.insertManufacturer(newManufacturer)) {
+                loadManufacturerData(); // Refresh table
+            } else {
+                showAlert("Error", "Failed to add manufacturer. Check logs for FK violations or DB connection.");
+            }
+        }
     }
 
     @FXML
-    void handleBackToDashboard(ActionEvent event) throws IOException {
-        switchScene(event, "/project/edgiaxel/fxml/Dashboard.fxml");
+    private void handleEditManufacturer() {
+        Manufacturer selectedManufacturer = manufacturerTable.getSelectionModel().getSelectedItem();
+        if (selectedManufacturer != null) {
+            boolean okClicked = showManufacturerEditDialog(selectedManufacturer);
+            if (okClicked) {
+                if (manufacturerDAO.updateManufacturer(selectedManufacturer)) {
+                    // Update the item in the ObservableList to refresh the TableView
+                    manufacturerTable.getSelectionModel().select(selectedManufacturer);
+                    manufacturerTable.refresh();
+                } else {
+                    showAlert("Error", "Failed to update manufacturer.");
+                }
+            }
+        } else {
+            showAlert("No Selection", "Select a manufacturer to edit.");
+        }
     }
 
-    // MANUFACTURER CRUD
-    // --- DIALOG HELPER ---
-    /**
-     * Opens a dialog to edit details for the specified Manufacturer.
-     *
-     * @param manufacturer the manufacturer object to edit, or null for a new
-     * one.
-     * @return true if the user clicked OK, false otherwise.
-     */
+    @FXML
+    private void handleDeleteManufacturer() {
+        Manufacturer selectedManufacturer = manufacturerTable.getSelectionModel().getSelectedItem();
+        if (selectedManufacturer != null) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirm Deletion");
+            alert.setHeaderText("Delete Manufacturer: " + selectedManufacturer.getName());
+            alert.setContentText("Are you sure you want to delete this manufacturer? This may affect associated teams/cars!");
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                if (manufacturerDAO.deleteManufacturer(selectedManufacturer)) {
+                    loadManufacturerData();
+                } else {
+                    showAlert("Error", "Failed to delete manufacturer. Check if any teams/cars are still linked.");
+                }
+            }
+        } else {
+            showAlert("No Selection", "Select a manufacturer to delete.");
+        }
+    }
+    
+    
+    
+    @FXML
+    private void handleAddTeam() {
+        Manufacturer selectedManufacturer = manufacturerTable.getSelectionModel().getSelectedItem();
+        if (selectedManufacturer == null) {
+            showAlert("No Manufacturer Selected", "Please select a Manufacturer first to add a new Team entry.");
+            return;
+        }
+
+        Team newTeam = new Team(0, "", "", selectedManufacturer.getManufacturerId(), 0, "", selectedManufacturer.getCategory());
+        boolean okClicked = showTeamEditDialog(newTeam);
+        if (okClicked) {
+            if (teamDAO.insertTeam(newTeam)) {
+                 showManufacturerDetails(selectedManufacturer); // Refresh team table
+            } else {
+                showAlert("Error", "Failed to add team. Check if car number is unique or if car model is selected.");
+            }
+        }
+    }
+    
+    @FXML
+    private void handleEditTeam() {
+        Team selectedTeam = teamTable.getSelectionModel().getSelectedItem();
+        if (selectedTeam != null) {
+            boolean okClicked = showTeamEditDialog(selectedTeam);
+            if (okClicked) {
+                if (teamDAO.updateTeam(selectedTeam)) {
+                    teamTable.refresh();
+                } else {
+                     showAlert("Error", "Failed to update team.");
+                }
+            }
+        } else {
+            showAlert("No Selection", "Select a team entry to edit.");
+        }
+    }
+    
+    @FXML
+    private void handleDeleteTeam() {
+        Team selectedTeam = teamTable.getSelectionModel().getSelectedItem();
+        Manufacturer selectedManufacturer = manufacturerTable.getSelectionModel().getSelectedItem();
+        if (selectedTeam != null && selectedManufacturer != null) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirm Deletion");
+            alert.setHeaderText("Delete Team: #" + selectedTeam.getCarNumber() + " " + selectedTeam.getTeamName());
+            alert.setContentText("Are you sure you want to delete this team entry? All driver assignments will be removed.");
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                if (teamDAO.deleteTeam(selectedTeam)) {
+                    showManufacturerDetails(selectedManufacturer); // Refresh team table
+                } else {
+                    showAlert("Error", "Failed to delete team.");
+                }
+            }
+        } else {
+            showAlert("No Selection", "Select a team entry to delete.");
+        }
+    }
+    
+    @FXML 
+    private void handleAddDriver() {
+        Team selectedTeam = teamTable.getSelectionModel().getSelectedItem();
+        if (selectedTeam != null) {
+            showDriverAssignmentDialog(selectedTeam);
+            // Refresh driver list after dialog closes
+            selectedTeam.setDrivers(teamDAO.getDriversForTeam(selectedTeam.getTeamId()));
+            driverTable.setItems(selectedTeam.getDrivers());
+            driverTable.refresh();
+        } else {
+            showAlert("No Selection", "Select a team entry first to manage drivers.");
+        }
+    }
+    
+    
+    
+    
+    
+
+    // --- Circuit CRUD Handlers (New) ---
+    
+    @FXML
+    private void handleAddCircuit() {
+        Circuit newCircuit = new Circuit(0, "", "", "", 0.0, "6 Hours"); // Default
+        boolean okClicked = showCircuitEditDialog(newCircuit);
+        if (okClicked) { 
+           if (circuitDAO.insertCircuit(newCircuit)) { 
+               loadCircuitData(); 
+           } else {
+                showAlert("Error", "Failed to add circuit. Check database connection.");
+           }
+        }
+    }
+    
+    @FXML
+    private void handleEditCircuit() {
+         Circuit selectedCircuit = circuitTable.getSelectionModel().getSelectedItem();
+        if (selectedCircuit != null) {
+            boolean okClicked = showCircuitEditDialog(selectedCircuit);
+            if (okClicked) { 
+               if (circuitDAO.updateCircuit(selectedCircuit)) { 
+                   circuitTable.refresh(); 
+               } else {
+                   showAlert("Error", "Failed to update circuit.");
+               }
+            }
+        } else {
+            showAlert("No Selection", "Select a circuit to edit.");
+        }
+    }
+    
+    @FXML
+    private void handleDeleteCircuit() {
+         Circuit selectedCircuit = circuitTable.getSelectionModel().getSelectedItem();
+        if (selectedCircuit != null) {
+             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirm Deletion");
+            alert.setHeaderText("Delete Circuit: " + selectedCircuit.getName());
+            alert.setContentText("Are you sure you want to delete this circuit? This action is permanent.");
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                if (circuitDAO.deleteCircuit(selectedCircuit)) { 
+                    loadCircuitData(); 
+                } else {
+                    showAlert("Error", "Failed to delete circuit. Check if it's currently used in a championship (future feature).");
+                }
+            }
+        } else {
+            showAlert("No Selection", "Select a circuit to delete.");
+        }
+    }
+    
+    
+    
+    
+    
+
+    // --- Dialog Pop-up Handlers ---
+    // Helper method to show Manufacturer Edit Dialog
     private boolean showManufacturerEditDialog(Manufacturer manufacturer) {
         try {
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/project/edgiaxel/fxml/ManufacturerEditDialog.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/ManufacturerEditDialog.fxml"));
             AnchorPane page = (AnchorPane) loader.load();
-
             Stage dialogStage = new Stage();
-            dialogStage.setTitle(manufacturer == null ? "Add New Manufacturer" : "Edit Manufacturer");
+            dialogStage.setTitle("Edit Manufacturer");
             dialogStage.initModality(Modality.WINDOW_MODAL);
             dialogStage.initOwner(manufacturerTable.getScene().getWindow());
             Scene scene = new Scene(page);
             dialogStage.setScene(scene);
 
-            // Set the manufacturer into the controller.
             ManufacturerEditDialogController controller = loader.getController();
             controller.setDialogStage(dialogStage);
             controller.setManufacturer(manufacturer);
@@ -234,263 +447,47 @@ public class MasterDataViewController {
             dialogStage.showAndWait();
             return controller.isOkClicked();
         } catch (IOException e) {
-            new Alert(Alert.AlertType.ERROR, "Could not load dialog FXML, check path!").showAndWait();
             e.printStackTrace();
             return false;
         }
     }
-
-// --- MANUFACTURER CRUD IMPLEMENTATION ---
-    @FXML
-    void handleAddManufacturer(ActionEvent event) {
-        // 1. Create a dummy object to hold new data
-        Manufacturer newManufacturer = new Manufacturer(-1, "", "", "");
-
-        // 2. Show the dialog and check for OK click
-        if (showManufacturerEditDialog(newManufacturer)) {
-            try {
-                // 3. Save to DB
-                DBUtil.insertManufacturer(newManufacturer);
-                new Alert(Alert.AlertType.INFORMATION, "Manufacturer " + newManufacturer.getName() + " added!").showAndWait();
-
-                // 4. Reload the data tables
-                loadAllData();
-
-            } catch (SQLException e) {
-                new Alert(Alert.AlertType.ERROR, "Database Error during INSERT: " + e.getMessage()).showAndWait();
-            }
-        }
-    }
-
-    @FXML
-    void handleEditManufacturer(ActionEvent event) {
-        Manufacturer selected = manufacturerTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            new Alert(Alert.AlertType.WARNING, "Select a manufacturer first, dumbass.").showAndWait();
-            return;
-        }
-
-        // 1. Show the dialog with the existing object
-        if (showManufacturerEditDialog(selected)) {
-            try {
-                // 2. Update the DB with the modified object
-                DBUtil.updateManufacturer(selected);
-                new Alert(Alert.AlertType.INFORMATION, "Manufacturer " + selected.getName() + " updated!").showAndWait();
-
-                // 3. Force table refresh (since we edited the existing object)
-                manufacturerTable.getColumns().get(0).setVisible(false);
-                manufacturerTable.getColumns().get(0).setVisible(true);
-
-            } catch (SQLException e) {
-                new Alert(Alert.AlertType.ERROR, "Database Error during UPDATE: " + e.getMessage()).showAndWait();
-            }
-        }
-    }
-
-    @FXML
-    void handleDeleteManufacturer(ActionEvent event) {
-        Manufacturer selected = manufacturerTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            new Alert(Alert.AlertType.WARNING, "Pick something to delete, or are you just wasting time?").showAndWait();
-            return;
-        }
-
-        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmation.setTitle("DANGER ZONE");
-        confirmation.setHeaderText("ARE YOU SURE, AXEL?!");
-        confirmation.setContentText("Deleting " + selected.getName() + " will DELETE ALL ASSOCIATED TEAMS AND CARS. THIS IS PERMANENT.");
-
-        Optional<ButtonType> result = confirmation.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                DBUtil.deleteManufacturer(selected.getManufacturerId());
-                new Alert(Alert.AlertType.INFORMATION, "Manufacturer " + selected.getName() + " and its teams have been WIPED OUT.").showAndWait();
-
-                // Reload everything since the deletion was cascading
-                loadAllData();
-
-            } catch (SQLException e) {
-                new Alert(Alert.AlertType.ERROR, "Database Error during DELETE: " + e.getMessage()).showAndWait();
-            }
-        }
-    }
-
-    // TEAM CRUD
-    /**
-     * Opens a dialog to edit details for the specified Team.
-     */
-    private Optional<Team> showTeamEditDialog(Team team, Manufacturer manufacturer) {
+    
+    private boolean showTeamEditDialog(Team team) {
         try {
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/project/edgiaxel/fxml/TeamEditDialog.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/TeamEditDialog.fxml"));
             AnchorPane page = (AnchorPane) loader.load();
 
             Stage dialogStage = new Stage();
-            dialogStage.setTitle(team == null ? "Add New Team" : "Edit Team");
+            dialogStage.setTitle(team.getTeamId() == 0 ? "Add New Team" : "Edit Team");
             dialogStage.initModality(Modality.WINDOW_MODAL);
             dialogStage.initOwner(teamTable.getScene().getWindow());
             Scene scene = new Scene(page);
             dialogStage.setScene(scene);
 
-            // Set the team, manufacturer, and all car models into the controller.
             TeamEditDialogController controller = loader.getController();
-            controller.setDialogStage(dialogStage);
-            controller.setTeamAndManufacturer(team, manufacturer, allCarModels);
-
-            dialogStage.showAndWait();
-
-            if (controller.isOkClicked()) {
-                // If adding, the controller created the object; return it.
-                return Optional.ofNullable(team == null ? controller.getTeam() : team);
-            } else {
-                return Optional.empty();
-            }
-        } catch (IOException e) {
-            new Alert(Alert.AlertType.ERROR, "Could not load Team dialog FXML, check path!").showAndWait();
-            e.printStackTrace();
-            return Optional.empty();
-        }
-    }
-
-    @FXML
-    void handleAddTeam(ActionEvent event) {
-        Manufacturer parentManufacturer = manufacturerTable.getSelectionModel().getSelectedItem();
-        if (parentManufacturer == null) {
-            new Alert(Alert.AlertType.WARNING, "Select a Manufacturer first! Every team needs a brand.").showAndWait();
-            return;
-        }
-
-        // Show dialog and get back the new Team object wrapped in Optional
-        Optional<Team> result = showTeamEditDialog(null, parentManufacturer);
-        result.ifPresent(newTeam -> {
-            try {
-                DBUtil.insertTeam(newTeam);
-                new Alert(Alert.AlertType.INFORMATION, "Team " + newTeam.getTeamName() + " added!").showAndWait();
-                loadAllData();
-                // Re-select the parent manufacturer to show the new team
-                manufacturerTable.getSelectionModel().select(parentManufacturer);
-            } catch (SQLException e) {
-                new Alert(Alert.AlertType.ERROR, "Database Error during TEAM INSERT: " + e.getMessage()).showAndWait();
-            }
-        });
-    }
-
-    @FXML
-    void handleEditTeam(ActionEvent event) {
-        Team selectedTeam = teamTable.getSelectionModel().getSelectedItem();
-        Manufacturer parentManufacturer = manufacturerTable.getSelectionModel().getSelectedItem();
-        if (selectedTeam == null) {
-            new Alert(Alert.AlertType.WARNING, "Select a team to edit, you slowpoke.").showAndWait();
-            return;
-        }
-
-        Optional<Team> result = showTeamEditDialog(selectedTeam, parentManufacturer);
-        result.ifPresent(updatedTeam -> {
-            try {
-                DBUtil.updateTeam(updatedTeam);
-                new Alert(Alert.AlertType.INFORMATION, "Team #" + updatedTeam.getCarNumber() + " updated!").showAndWait();
-
-                // Refresh the Team table view
-                teamTable.getColumns().get(0).setVisible(false);
-                teamTable.getColumns().get(0).setVisible(true);
-
-            } catch (SQLException e) {
-                new Alert(Alert.AlertType.ERROR, "Database Error during TEAM UPDATE: " + e.getMessage()).showAndWait();
-            }
-        });
-    }
-
-    @FXML
-    void handleDeleteTeam(ActionEvent event) {
-        Team selectedTeam = teamTable.getSelectionModel().getSelectedItem();
-        if (selectedTeam == null) {
-            new Alert(Alert.AlertType.WARNING, "Select a team to delete first!").showAndWait();
-            return;
-        }
-
-        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmation.setTitle("TEAM DELETION");
-        confirmation.setHeaderText("WIPING OUT CAR #" + selectedTeam.getCarNumber());
-        confirmation.setContentText("Deleting this team will REMOVE all associated drivers from this car. Continue?");
-
-        Optional<ButtonType> result = confirmation.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                DBUtil.deleteTeam(selectedTeam.getTeamId());
-                new Alert(Alert.AlertType.INFORMATION, "Team #" + selectedTeam.getCarNumber() + " deleted.").showAndWait();
-                loadAllData();
-                // Re-select the parent manufacturer to refresh the filtered team list
-                manufacturerTable.getSelectionModel().select(manufacturerTable.getSelectionModel().getSelectedItem());
-
-            } catch (SQLException e) {
-                new Alert(Alert.AlertType.ERROR, "Database Error during TEAM DELETE: " + e.getMessage()).showAndWait();
-            }
-        }
-    }
-
-    // DRIVER CRUD (Only need add/assign driver here, editing/deleting individual drivers is complex)
-    /**
-     * Opens the dialog to manage drivers for the selected team.
-     */
-    private void showDriverAssignmentDialog(Team team) {
-        try {
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/project/edgiaxel/fxml/DriverAssignmentDialog.fxml"));
-            AnchorPane page = (AnchorPane) loader.load();
-
-            Stage dialogStage = new Stage();
-            dialogStage.setTitle("Manage Roster for Car #" + team.getCarNumber());
-            dialogStage.initModality(Modality.WINDOW_MODAL);
-            dialogStage.initOwner(driverTable.getScene().getWindow());
-            Scene scene = new Scene(page);
-            dialogStage.setScene(scene);
-
-            // Set the team object into the controller.
-            DriverAssignmentDialogController controller = loader.getController();
             controller.setDialogStage(dialogStage);
             controller.setTeam(team);
 
             dialogStage.showAndWait();
-
-            // Reload the drivers for the current team after the dialog closes
-            showDriversForSelectedTeam(team);
-
+            return controller.isOkClicked();
         } catch (IOException e) {
-            new Alert(Alert.AlertType.ERROR, "Could not load Driver Assignment dialog FXML, check path!").showAndWait();
             e.printStackTrace();
+            return false;
         }
     }
-
-    @FXML
-    void handleAddDriver(ActionEvent event) {
-        Team selectedTeam = teamTable.getSelectionModel().getSelectedItem();
-        if (selectedTeam == null) {
-            new Alert(Alert.AlertType.WARNING, "Select a team first! You can't assign a driver to thin air.").showAndWait();
-            return;
-        }
-
-        showDriverAssignmentDialog(selectedTeam);
-    }
-
-    // CIRCUIT CRUD
-    // Inside MasterDataViewController.java (Add this helper method)
-    /**
-     * Opens a dialog to edit details for the specified Circuit.
-     */
+    
     private boolean showCircuitEditDialog(Circuit circuit) {
         try {
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/project/edgiaxel/fxml/CircuitEditDialog.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/CircuitEditDialog.fxml"));
             AnchorPane page = (AnchorPane) loader.load();
 
             Stage dialogStage = new Stage();
-            dialogStage.setTitle(circuit == null ? "Add New Circuit" : "Edit Circuit");
+            dialogStage.setTitle(circuit.getCircuitId() == 0 ? "Add New Circuit" : "Edit Circuit");
             dialogStage.initModality(Modality.WINDOW_MODAL);
             dialogStage.initOwner(circuitTable.getScene().getWindow());
             Scene scene = new Scene(page);
             dialogStage.setScene(scene);
 
-            // Set the circuit into the controller.
             CircuitEditDialogController controller = loader.getController();
             controller.setDialogStage(dialogStage);
             controller.setCircuit(circuit);
@@ -498,83 +495,54 @@ public class MasterDataViewController {
             dialogStage.showAndWait();
             return controller.isOkClicked();
         } catch (IOException e) {
-            new Alert(Alert.AlertType.ERROR, "Could not load Circuit dialog FXML, check path!").showAndWait();
             e.printStackTrace();
             return false;
         }
     }
 
-// Inside MasterDataViewController.java (Replace the placeholder CRUD methods)
-// --- CIRCUIT CRUD IMPLEMENTATION ---
-    @FXML
-    void handleAddCircuit(ActionEvent event) {
-        // 1. Create a dummy object to hold new data
-        Circuit newCircuit = new Circuit(-1, "", "", "", 0.0, "6 Hours");
+    private void showDriverAssignmentDialog(Team team) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/DriverAssignmentDialog.fxml"));
+            AnchorPane page = (AnchorPane) loader.load();
 
-        // 2. Show the dialog and check for OK click
-        if (showCircuitEditDialog(newCircuit)) {
-            try {
-                // 3. Save to DB
-                DBUtil.insertCircuit(newCircuit);
-                new Alert(Alert.AlertType.INFORMATION, "Circuit " + newCircuit.getName() + " added!").showAndWait();
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Driver Assignment for #" + team.getCarNumber());
+            dialogStage.initModality(Modality.WINDOW_MODAL);
+            dialogStage.initOwner(teamTable.getScene().getWindow());
+            Scene scene = new Scene(page);
+            dialogStage.setScene(scene);
 
-                // 4. Reload the circuit data
-                circuitTable.setItems(DBUtil.getAllCircuits());
+            DriverAssignmentDialogController controller = loader.getController();
+            controller.setDialogStage(dialogStage);
+            controller.setTeam(team);
 
-            } catch (SQLException e) {
-                new Alert(Alert.AlertType.ERROR, "Database Error during CIRCUIT INSERT: " + e.getMessage()).showAndWait();
-            }
+            dialogStage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    @FXML
-    void handleEditCircuit(ActionEvent event) {
-        Circuit selected = circuitTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            new Alert(Alert.AlertType.WARNING, "Select a circuit first, you massive fool.").showAndWait();
-            return;
-        }
-
-        if (showCircuitEditDialog(selected)) {
-            try {
-                DBUtil.updateCircuit(selected);
-                new Alert(Alert.AlertType.INFORMATION, "Circuit " + selected.getName() + " updated!").showAndWait();
-
-                // Force table refresh
-                circuitTable.getColumns().get(0).setVisible(false);
-                circuitTable.getColumns().get(0).setVisible(true);
-
-            } catch (SQLException e) {
-                new Alert(Alert.AlertType.ERROR, "Database Error during CIRCUIT UPDATE: " + e.getMessage()).showAndWait();
-            }
-        }
+    // Helper to show generic alert
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
+    // --- Navigation ---
     @FXML
-    void handleDeleteCircuit(ActionEvent event) {
-        Circuit selected = circuitTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            new Alert(Alert.AlertType.WARNING, "Pick a circuit to delete!").showAndWait();
-            return;
-        }
-
-        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmation.setTitle("Circuit Deletion");
-        confirmation.setHeaderText("Confirm Deletion of " + selected.getName());
-        confirmation.setContentText("Are you sure you want to permanently delete this circuit? This may affect existing championships.");
-
-        Optional<ButtonType> result = confirmation.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                DBUtil.deleteCircuit(selected.getCircuitId());
-                new Alert(Alert.AlertType.INFORMATION, "Circuit " + selected.getName() + " deleted.").showAndWait();
-
-                // Reload the circuit table
-                circuitTable.setItems(DBUtil.getAllCircuits());
-
-            } catch (SQLException e) {
-                new Alert(Alert.AlertType.ERROR, "Database Error during CIRCUIT DELETE: " + e.getMessage()).showAndWait();
-            }
+    private void handleBackToDashboard(ActionEvent event) {
+        try {
+            Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/Dashboard.fxml"));
+            Parent root = loader.load();
+            stage.setTitle("FIA WEC SIMULATOR");
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
