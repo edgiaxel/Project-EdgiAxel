@@ -3,27 +3,18 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/dao/DriverDAO.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/dao/CarModelDAO.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/DashboardController.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/dao/StandingsDAO.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/ViewChampionshipsController.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/TeamEditDialogController.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/Main.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/dao/TeamDAO.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/DriverSimpleEditDialogController.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/CircuitEditDialogController.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/model/ChampionshipSeason.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/model/RaceResultEntry.java</file>
             <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/MasterDataViewController.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/dao/ManufacturerDAO.java</file>
+            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/DashboardController.java</file>
+            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/TeamEditDialogController.java</file>
+            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/ViewChampionshipsController.java</file>
+            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/Main.java</file>
             <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/RaceResultDetailsTabController.java</file>
             <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/ManufacturerEditDialogController.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/dao/ChampionshipDAO.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/model/StandingEntry.java</file>
             <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/DriverAssignmentDialogController.java</file>
             <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/RaceManagementViewController.java</file>
-            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/dao/CircuitDAO.java</file>
+            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/DriverSimpleEditDialogController.java</file>
+            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/StartChampionshipViewController.java</file>
+            <file>file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/src/project/edgiaxel/controller/CircuitEditDialogController.java</file>
         </group>
     </open-files>
 </project-private>

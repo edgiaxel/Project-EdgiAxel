@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="800.0" prefWidth="1200.0" style="-fx-background-color: #1a1a1a;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="project.edgiaxel.controller.ViewChampionshipsController">
+    <children>
+        <Label layoutX="14.0" layoutY="14.0" text="CHAMPIONSHIP STANDINGS &amp; RACE RESULTS" textFill="#e50f0f">
+            <font>
+                <Font name="System Bold" size="24.0" />
+            </font>
+        </Label>
+        <Button layoutX="1039.0" layoutY="16.0" mnemonicParsing="false" onAction="#handleBackToDashboard" style="-fx-background-color: #404040; -fx-text-fill: white;" text="&lt; BACK TO DASHBOARD" />
+        
+        <HBox alignment="CENTER_LEFT" layoutX="14.0" layoutY="60.0" spacing="30.0" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="60.0">
+           <children>
+               <Label text="SELECT SEASON:" textFill="WHITE">
+                   <font>
+                       <Font name="System Bold" size="14.0" />
+                   </font>
+               </Label>
+               <ComboBox fx:id="yearComboBox" onAction="#handleYearSelection" prefWidth="120.0" promptText="Select Year" style="-fx-text-fill: #fffff;" />
+               
+               <Label text="SELECT CIRCUIT (RACE RESULTS):" textFill="WHITE">
+                   <font>
+                       <Font name="System Bold" size="14.0" />
+                   </font>
+               </Label>
+               <ComboBox fx:id="circuitComboBox" onAction="#handleCircuitSelection" prefWidth="250.0" promptText="Select Circuit" style="-fx-text-fill: WHITE;" />
+           </children>
+        </HBox>
+        
+        <TabPane fx:id="championshipTabPane" layoutX="14.0" layoutY="100.0" prefHeight="685.0" prefWidth="1172.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="100.0">
+           <tabs>
+               
+               <Tab text="OVERALL STANDINGS (ALL CATEGORIES)">
+                   <content>
+                       <AnchorPane style="-fx-background-color: #2a2a2a;">
+                          <children>
+                              <TableView fx:id="overallTable" prefHeight="640.0" prefWidth="1172.0" style="-fx-background-color: #3b3b3b; -fx-control-inner-background: #1c1c1c; -fx-table-cell-border-color: #404040;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                          </children>
+                       </AnchorPane>
+                   </content>
+               </Tab>
+               
+               <Tab text="MANUFACTURERS STANDINGS">
+                   <content>
+                       <AnchorPane style="-fx-background-color: #2a2a2a;">
+                          <children>
+                              <TableView fx:id="manufacturersTable" prefHeight="640.0" prefWidth="1172.0" style="-fx-background-color: #3b3b3b; -fx-control-inner-background: #1c1c1c; -fx-table-cell-border-color: #404040;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                          </children>
+                       </AnchorPane>
+                   </content>
+               </Tab>
+               
+               <Tab text="HYPERCAR TEAM STANDINGS">
+                   <content>
+                       <AnchorPane style="-fx-background-color: #2a2a2a;">
+                          <children>
+                              <TableView fx:id="teamHyperTable" prefHeight="640.0" prefWidth="1172.0" style="-fx-background-color: #3b3b3b; -fx-control-inner-background: #1c1c1c; -fx-table-cell-border-color: #404040;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                          </children>
+                       </AnchorPane>
+                   </content>
+               </Tab>
+               
+               <Tab text="LMGT3 TEAM STANDINGS">
+                   <content>
+                       <AnchorPane style="-fx-background-color: #2a2a2a;">
+                          <children>
+                              <TableView fx:id="teamGT3Table" prefHeight="640.0" prefWidth="1172.0" style="-fx-background-color: #3b3b3b; -fx-control-inner-background: #1c1c1c; -fx-table-cell-border-color: #404040;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                          </children>
+                       </AnchorPane>
+                   </content>
+               </Tab>
+               
+               <Tab fx:id="raceResultsTab" closable="false" text="RACE RESULTS (Select Circuit)">
+                   <content>
+                       <AnchorPane style="-fx-background-color: #2a2a2a;">
+                          <children>
+                              <Label text="Select a Circuit from the dropdown above to view Race Results (FP, Quali, Race)." textFill="#a0a0a0" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="20.0" />
+                          </children>
+                       </AnchorPane>
+                   </content>
+               </Tab>
+           </tabs>
+            
+        </TabPane>
+    </children>
+</AnchorPane>
