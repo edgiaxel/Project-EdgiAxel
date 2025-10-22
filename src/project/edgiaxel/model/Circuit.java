@@ -9,10 +9,9 @@ public class Circuit {
     private final StringProperty location;
     private final StringProperty country;
     private final SimpleDoubleProperty lengthKm;
-    private final StringProperty raceType; // 6 Hours, 8–10 Hours, 24 Hours
-    private final StringProperty mapPath; // New: For Circuit Management track map
+    private final StringProperty raceType;
+    private final StringProperty mapPath;
 
-    // Constructor
     public Circuit(int circuitId, String name, String location, String country, double lengthKm, String raceType) {
         this.circuitId = new SimpleIntegerProperty(circuitId);
         this.name = new SimpleStringProperty(name);
@@ -20,11 +19,9 @@ public class Circuit {
         this.country = new SimpleStringProperty(country);
         this.lengthKm = new SimpleDoubleProperty(lengthKm);
         this.raceType = new SimpleStringProperty(raceType);
-        // Placeholder path
-        this.mapPath = new SimpleStringProperty("/images/circuits/" + name.replaceAll("\\s+", "_") + "_map.png");
+        this.mapPath = new SimpleStringProperty("/images/circuit_" + name.toLowerCase().split(" ")[0] + ".jpg");
     }
 
-    // --- Properties for TableView ---
     public StringProperty nameProperty() {
         return name;
     }
@@ -45,7 +42,6 @@ public class Circuit {
         return raceType;
     }
 
-    // --- Getters ---
     public int getCircuitId() {
         return circuitId.get();
     }
@@ -74,7 +70,6 @@ public class Circuit {
         return mapPath.get();
     }
 
-    // --- Setters ---
     public void setCircuitId(int circuitId) {
         this.circuitId.set(circuitId);
     }
@@ -103,7 +98,6 @@ public class Circuit {
         this.mapPath.set(mapPath);
     }
 
-    // Override toString
     @Override
     public String toString() {
         return name.get() + " (" + raceType.get() + ")";

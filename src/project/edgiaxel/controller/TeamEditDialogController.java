@@ -31,10 +31,8 @@ public class TeamEditDialogController {
 
     @FXML
     private void initialize() {
-        // Manufacturer list is loaded and disabled as a team is linked to one manufacturer upon creation
         manufacturerComboBox.setItems(ManufacturerDAO.getInstance().getAllManufacturers());
 
-        // Listener to load car models when manufacturer is selected (Only for adding a new team)
         manufacturerComboBox.getSelectionModel().selectedItemProperty().addListener(
             (obs, oldVal, newVal) -> {
                 if (newVal != null) {
@@ -44,11 +42,9 @@ public class TeamEditDialogController {
             }
         );
         
-        // Listener to update category when car model is selected (In case of edit)
         carModelComboBox.getSelectionModel().selectedItemProperty().addListener(
             (obs, oldVal, newVal) -> {
                 if (newVal != null) {
-                    // Update category field based on the selected car model's manufacturer category
                     Manufacturer manufacturer = manufacturerComboBox.getSelectionModel().getSelectedItem();
                     if (manufacturer != null) {
                         categoryField.setText(manufacturer.getCategory());
@@ -65,31 +61,26 @@ public class TeamEditDialogController {
     public void setTeam(Team team) {
         this.team = team;
 
-        // Set Manufacturer (find in combobox and select)
         Manufacturer manufacturer = ManufacturerDAO.getInstance().getAllManufacturers().stream()
                 .filter(m -> m.getManufacturerId() == team.getManufacturerId())
                 .findFirst().orElse(null);
         
         manufacturerComboBox.getSelectionModel().select(manufacturer);
         
-        // Load Car Models for this manufacturer
         if (manufacturer != null) {
             carModelComboBox.setItems(carModelDAO.getCarModelsByManufacturerId(manufacturer.getManufacturerId()));
         }
 
-        // Set fields
         carNumberField.setText(team.getCarNumber());
         teamNameField.setText(team.getTeamName());
         nationalityField.setText(team.getNationality());
         categoryField.setText(team.getCategory());
         
-        // Set Car Model selection
         if (team.getCarModelId() != 0) {
             CarModel model = carModelDAO.getCarModelById(team.getCarModelId());
             carModelComboBox.getSelectionModel().select(model);
         }
         
-        // For existing teams, disable manufacturer selection
         manufacturerComboBox.setDisable(team.getTeamId() != 0);
     }
 
@@ -102,15 +93,13 @@ public class TeamEditDialogController {
         if (isInputValid()) {
             CarModel selectedModel = carModelComboBox.getSelectionModel().getSelectedItem();
             
-            // Update Team object properties
             team.setCarNumber(carNumberField.getText());
             team.setTeamName(teamNameField.getText());
             team.setNationality(nationalityField.getText());
             
-            // Set FKs
             team.setManufacturerId(manufacturerComboBox.getSelectionModel().getSelectedItem().getManufacturerId());
             team.setCarModelId(selectedModel.getCarModelId());
-            team.setCategory(categoryField.getText()); // Ensure category matches the manufacturer/car model
+            team.setCategory(categoryField.getText()); 
 
             okClicked = true;
             dialogStage.close();
@@ -122,9 +111,6 @@ public class TeamEditDialogController {
         dialogStage.close();
     }
     
-    // NOTE: New car model creation logic is complex and usually done in a separate dialog. 
-    // Assuming the car model must exist in the database for now.
-
     private boolean isInputValid() {
         String errorMessage = "";
 

@@ -7,19 +7,17 @@ public class Manufacturer {
     private final IntegerProperty manufacturerId;
     private final StringProperty name;
     private final StringProperty country;
-    private final StringProperty category; // Hypercar or LMGT3
-    private final StringProperty logoPath; // For MasterDataView image
+    private final StringProperty category;
+    private final StringProperty logoPath; 
 
-    // Constructor
     public Manufacturer(int manufacturerId, String name, String country, String category) {
         this.manufacturerId = new SimpleIntegerProperty(manufacturerId);
         this.name = new SimpleStringProperty(name);
         this.country = new SimpleStringProperty(country);
         this.category = new SimpleStringProperty(category);
-        this.logoPath = new SimpleStringProperty("/images/manufacturers/" + name.replaceAll("\\s+", "_") + "_logo.png");
+        this.logoPath = new SimpleStringProperty("/images/manufacturer_" + name.toLowerCase().replaceAll("\\s+", "_") + ".jpg");
     }
 
-    // --- Properties for TableView ---
     public IntegerProperty manufacturerIdProperty() {
         return manufacturerId;
     }
@@ -40,7 +38,6 @@ public class Manufacturer {
         return logoPath;
     }
 
-    // --- Getters ---
     public int getManufacturerId() {
         return manufacturerId.get();
     }
@@ -61,7 +58,6 @@ public class Manufacturer {
         return logoPath.get();
     }
 
-    // --- Setters ---
     public void setManufacturerId(int manufacturerId) {
         this.manufacturerId.set(manufacturerId);
     }
@@ -82,7 +78,6 @@ public class Manufacturer {
         this.logoPath.set(logoPath);
     }
 
-    // --- ToString() ---
     @Override
     public String toString() {
         return name.get() + " (" + category.get() + ")";

@@ -22,14 +22,14 @@
                        <Font name="System Bold" size="14.0" />
                    </font>
                </Label>
-               <ComboBox fx:id="yearComboBox" onAction="#handleYearSelection" prefWidth="120.0" promptText="Select Year" style="-fx-background-color: #3b3b3b; -fx-text-fill: WHITE;" />
+               <ComboBox fx:id="yearComboBox" onAction="#handleYearSelection" prefWidth="120.0" promptText="Select Year" style="-fx-text-fill: #fffff;" />
                
                <Label text="SELECT CIRCUIT (RACE RESULTS):" textFill="WHITE">
                    <font>
                        <Font name="System Bold" size="14.0" />
                    </font>
                </Label>
-               <ComboBox fx:id="circuitComboBox" onAction="#handleCircuitSelection" prefWidth="250.0" promptText="Select Circuit" style="-fx-background-color: #3b3b3b; -fx-text-fill: WHITE;" />
+               <ComboBox fx:id="circuitComboBox" onAction="#handleCircuitSelection" prefWidth="250.0" promptText="Select Circuit" style="-fx-text-fill: WHITE;" />
            </children>
         </HBox>
         

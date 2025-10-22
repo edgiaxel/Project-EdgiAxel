@@ -20,9 +20,6 @@ public class ChampionshipDAO {
         return instance;
     }
     
-    /**
-     * Fetches all Championship Seasons available for viewing.
-     */
     public ObservableList<ChampionshipSeason> getAllSeasons() {
         ObservableList<ChampionshipSeason> seasons = FXCollections.observableArrayList();
         String sql = "SELECT * FROM championship_season ORDER BY year DESC";
@@ -44,9 +41,6 @@ public class ChampionshipDAO {
         return seasons;
     }
     
-    /**
-     * Checks if a season for a given year already exists.
-     */
     public boolean doesSeasonExist(int year) {
         String sql = "SELECT COUNT(*) FROM championship_season WHERE year = ?";
         try (Connection conn = DBConnector.getConnection();
@@ -63,12 +57,7 @@ public class ChampionshipDAO {
         return false;
     }
     
-    /**
-     * Creates a new Championship Season and its race calendar (Transactional).
-     * @return The generated season ID or -1 on failure.
-     */
     public int createNewSeason(int year, ObservableList<Circuit> selectedCircuits) {
-        // Two tables are involved: championship_season and season_circuit (Needs to be created).
         String seasonSql = "INSERT INTO championship_season (year, status) VALUES (?, 'Created')";
         String circuitSql = "INSERT INTO season_circuit (season_id, circuit_id, race_index) VALUES (?, ?, ?)";
         Connection conn = DBConnector.getConnection();
@@ -78,9 +67,8 @@ public class ChampionshipDAO {
         int newSeasonId = -1;
 
         try {
-            conn.setAutoCommit(false); // Start transaction
-
-            // 1. Insert Championship Season
+            conn.setAutoCommit(false);
+            
             try (PreparedStatement seasonStmt = conn.prepareStatement(seasonSql, Statement.RETURN_GENERATED_KEYS)) {
                 seasonStmt.setInt(1, year);
                 if (seasonStmt.executeUpdate() > 0) {
@@ -94,7 +82,6 @@ public class ChampionshipDAO {
                 }
             }
             
-            // 2. Insert Circuits for the Season
             try (PreparedStatement circuitStmt = conn.prepareStatement(circuitSql)) {
                 int raceIndex = 1;
                 for (Circuit circuit : selectedCircuits) {
@@ -129,9 +116,6 @@ public class ChampionshipDAO {
         }
     }
     
-    /**
-     * Updates the status of an existing Championship Season.
-     */
     public boolean updateSeasonStatus(int seasonId, String newStatus) {
         String sql = "UPDATE championship_season SET status = ? WHERE season_id = ?";
         Connection conn = DBConnector.getConnection();

@@ -20,9 +20,6 @@ public class CarModelDAO {
         return instance;
     }
 
-    /**
-     * Fetches a single CarModel by its ID.
-     */
     public CarModel getCarModelById(int carModelId) {
         String sql = "SELECT * FROM car_model WHERE car_model_id = ?";
         CarModel model = null;
@@ -46,9 +43,6 @@ public class CarModelDAO {
         return model;
     }
 
-    /**
-     * Fetches all Car Models associated with a specific Manufacturer.
-     */
     public ObservableList<CarModel> getCarModelsByManufacturerId(int manufacturerId) {
         ObservableList<CarModel> models = FXCollections.observableArrayList();
         String sql = "SELECT * FROM car_model WHERE manufacturer_id = ?";
@@ -72,9 +66,6 @@ public class CarModelDAO {
         return models;
     }
 
-    /**
-     * Updates the base rating (BOP) of a Car Model.
-     */
     public boolean updateCarModel(CarModel model) {
         String sql = "UPDATE car_model SET model_name = ?, base_rating = ? WHERE car_model_id = ?";
         Connection conn = DBConnector.getConnection();
@@ -95,9 +86,6 @@ public class CarModelDAO {
         }
     }
 
-    /**
-     * Inserts a new Car Model.
-     */
     public boolean insertCarModel(CarModel model) {
         String sql = "INSERT INTO car_model (manufacturer_id, model_name, base_rating) VALUES (?, ?, ?)";
         Connection conn = DBConnector.getConnection();
@@ -113,7 +101,7 @@ public class CarModelDAO {
             if (rowsAffected > 0) {
                 ResultSet generatedKeys = pstmt.getGeneratedKeys();
                 if (generatedKeys.next()) {
-                    model.setCarModelId(generatedKeys.getInt(1)); // Update object ID
+                    model.setCarModelId(generatedKeys.getInt(1));
                 }
                 return true;
             }
@@ -126,9 +114,6 @@ public class CarModelDAO {
         return false;
     }
 
-    /**
-     * Deletes a Car Model.
-     */
     public boolean deleteCarModel(CarModel model) {
         String sql = "DELETE FROM car_model WHERE car_model_id = ?";
         Connection conn = DBConnector.getConnection();

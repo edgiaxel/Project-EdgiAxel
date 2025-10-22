@@ -8,7 +8,6 @@ import java.sql.*;
 
 public class ManufacturerDAO {
 
-    // --- Singleton Pattern (Optional but good practice) ---
     private static ManufacturerDAO instance;
 
     private ManufacturerDAO() {}
@@ -19,9 +18,7 @@ public class ManufacturerDAO {
         }
         return instance;
     }
-    // --------------------------------------------------------
-
-    // 1. Fetch all Manufacturers
+    
     public ObservableList<Manufacturer> getAllManufacturers() {
         ObservableList<Manufacturer> manufacturers = FXCollections.observableArrayList();
         String sql = "SELECT * FROM manufacturer";
@@ -44,7 +41,6 @@ public class ManufacturerDAO {
         return manufacturers;
     }
 
-    // 2. Insert new Manufacturer (Needed for MasterDataView)
     public boolean insertManufacturer(Manufacturer manufacturer) {
         String sql = "INSERT INTO manufacturer (name, country, category) VALUES (?, ?, ?)";
         Connection conn = DBConnector.getConnection();
@@ -60,7 +56,7 @@ public class ManufacturerDAO {
             if (rowsAffected > 0) {
                 ResultSet generatedKeys = pstmt.getGeneratedKeys();
                 if (generatedKeys.next()) {
-                    manufacturer.setManufacturerId(generatedKeys.getInt(1)); // Update object ID
+                    manufacturer.setManufacturerId(generatedKeys.getInt(1));
                 }
                 return true;
             }
@@ -73,7 +69,6 @@ public class ManufacturerDAO {
         return false;
     }
 
-    // 3. Update Manufacturer (Needed for MasterDataView)
     public boolean updateManufacturer(Manufacturer manufacturer) {
         String sql = "UPDATE manufacturer SET name = ?, country = ?, category = ? WHERE manufacturer_id = ?";
         Connection conn = DBConnector.getConnection();
@@ -95,10 +90,7 @@ public class ManufacturerDAO {
         }
     }
     
-    // 4. Delete Manufacturer (Needed for MasterDataView)
     public boolean deleteManufacturer(Manufacturer manufacturer) {
-        // NOTE: Deleting a manufacturer will likely require deleting associated teams and car models first (due to FK constraints).
-        // This method should be called only after those checks/deletions.
         String sql = "DELETE FROM manufacturer WHERE manufacturer_id = ?";
         Connection conn = DBConnector.getConnection();
         PreparedStatement pstmt = null;
@@ -109,9 +101,7 @@ public class ManufacturerDAO {
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
-            // Check for foreign key violation
             if (e.getErrorCode() == 1451) { 
-                // MySQL Error 1451: Cannot delete or update a parent row: a foreign key constraint fails
                 System.err.println("Error: Cannot delete manufacturer due to associated Teams/Car Models existing.");
                 return false;
             }

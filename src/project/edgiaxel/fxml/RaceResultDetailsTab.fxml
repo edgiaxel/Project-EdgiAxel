@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane prefHeight="640.0" prefWidth="1172.0" style="-fx-background-color: #1c1c1c;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="project.edgiaxel.controller.RaceResultDetailsTabController">
+   <children>
+      <VBox layoutX="14.0" layoutY="14.0" prefHeight="612.0" prefWidth="1144.0" spacing="15.0" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="14.0">
+         <children>
+            <Label fx:id="circuitHeaderLabel" text="RESULTS FOR [CIRCUIT NAME] - [RACE DURATION]" textFill="#00b386">
+               <font>
+                  <Font name="System Bold" size="20.0" />
+               </font>
+            </Label>
+            <Separator />
+            <TabPane fx:id="resultsTabPane" prefHeight="550.0" prefWidth="1144.0" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+              <tabs>
+                <Tab text="OVERALL RACE RESULTS (Points Awarded)">
+                  <content>
+                    <AnchorPane style="-fx-background-color: #2a2a2a;">
+                           <children>
+                              <TableView fx:id="raceResultTable" prefHeight="500.0" prefWidth="1144.0" style="-fx-background-color: #3b3b3b; -fx-control-inner-background: #1c1c1c;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                           </children>
+                    </AnchorPane>
+                  </content>
+                </Tab>
+                <Tab text="QUALIFYING &amp; HYPERPOLE">
+                  <content>
+                    <AnchorPane style="-fx-background-color: #2a2a2a;">
+                           <children>
+                              <TableView fx:id="qualiResultTable" prefHeight="500.0" prefWidth="1144.0" style="-fx-background-color: #3b3b3b; -fx-control-inner-background: #1c1c1c;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                           </children>
+                    </AnchorPane>
+                  </content>
+                </Tab>
+                  <Tab text="FREE PRACTICE (FP1/FP2/FP3)">
+                     <content>
+                        <AnchorPane style="-fx-background-color: #2a2a2a;">
+                           <children>
+                              <TableView fx:id="fpResultTable" prefHeight="500.0" prefWidth="1144.0" style="-fx-background-color: #3b3b3b; -fx-control-inner-background: #1c1c1c;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                           </children>
+                        </AnchorPane>
+                     </content>
+                  </Tab>
+              </tabs>
+            </TabPane>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

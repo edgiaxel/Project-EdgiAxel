@@ -9,7 +9,6 @@ public class Driver {
     private final StringProperty lastName;
     private final StringProperty nationality;
 
-    // Constructor
     public Driver(int driverId, String firstName, String lastName, String nationality) {
         this.driverId = new SimpleIntegerProperty(driverId);
         this.firstName = new SimpleStringProperty(firstName);
@@ -17,7 +16,6 @@ public class Driver {
         this.nationality = new SimpleStringProperty(nationality);
     }
 
-    // --- Properties for TableView ---
     public StringProperty firstNameProperty() {
         return firstName;
     }
@@ -30,7 +28,6 @@ public class Driver {
         return nationality;
     }
 
-    // --- Getters ---
     public int getDriverId() {
         return driverId.get();
     }
@@ -46,8 +43,7 @@ public class Driver {
     public String getNationality() {
         return nationality.get();
     }
-
-    // --- Setters ---
+    
     public void setDriverId(int driverId) {
         this.driverId.set(driverId);
     }
@@ -68,7 +64,6 @@ public class Driver {
         return firstName.get() + " " + lastName.get();
     }
 
-    // Override toString
     @Override
     public String toString() {
         return getFullName() + " (" + nationality.get() + ")";

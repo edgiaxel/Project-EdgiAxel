@@ -22,10 +22,6 @@ public class TeamDAO {
         return instance;
     }
 
-    /**
-     * Fetches all Teams associated with a specific Manufacturer ID. Also
-     * fetches and sets the related CarModel and Drivers.
-     */
     public ObservableList<Team> getTeamsByManufacturerId(int manufacturerId) {
         ObservableList<Team> teams = FXCollections.observableArrayList();
         String sql = "SELECT * FROM team WHERE manufacturer_id = ?";
@@ -45,7 +41,6 @@ public class TeamDAO {
                             rs.getString("category")
                     );
 
-                    // Fetch related objects
                     CarModel carModel = CarModelDAO.getInstance().getCarModelById(team.getCarModelId());
                     team.setCarModel(carModel);
 
@@ -60,9 +55,6 @@ public class TeamDAO {
         return teams;
     }
 
-    /**
-     * Fetches all drivers currently assigned to a specific Team.
-     */
     public ObservableList<Driver> getDriversForTeam(int teamId) {
         ObservableList<Driver> drivers = FXCollections.observableArrayList();
         String sql = "SELECT d.* FROM driver d JOIN team_driver td ON d.driver_id = td.driver_id WHERE td.team_id = ?";
@@ -85,11 +77,7 @@ public class TeamDAO {
         }
         return drivers;
     }
-
-    /**
-     * Saves the list of drivers assigned to a team (Transactional operation).
-     * This is used in the DriverAssignmentDialog.
-     */
+    
     public boolean saveTeamDrivers(int teamId, ObservableList<Driver> newDrivers) {
         Connection conn = DBConnector.getConnection();
         if (conn == null) {
@@ -97,16 +85,14 @@ public class TeamDAO {
         }
 
         try {
-            conn.setAutoCommit(false); // Start transaction
+            conn.setAutoCommit(false); 
 
-            // 1. Delete all current assignments for the team
             String deleteSql = "DELETE FROM team_driver WHERE team_id = ?";
             try ( PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
                 deleteStmt.setInt(1, teamId);
                 deleteStmt.executeUpdate();
             }
 
-            // 2. Insert new driver assignments
             String insertSql = "INSERT INTO team_driver (team_id, driver_id) VALUES (?, ?)";
             try ( PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
                 for (Driver driver : newDrivers) {
@@ -117,13 +103,13 @@ public class TeamDAO {
                 insertStmt.executeBatch();
             }
 
-            conn.commit(); // Commit transaction
+            conn.commit(); 
             return true;
 
         } catch (SQLException e) {
             System.err.println("Transaction failed: Failed to save team drivers: " + e.getMessage());
             try {
-                conn.rollback(); // Rollback on error
+                conn.rollback(); 
             } catch (SQLException ex) {
                 System.err.println("Rollback failed: " + ex.getMessage());
             }
@@ -135,7 +121,6 @@ public class TeamDAO {
                     DBConnector.closeConnection(conn);
                 }
             } catch (SQLException e) {
-                // Already handled in DBConnector, but added for safety
             }
         }
     }
@@ -171,16 +156,12 @@ public class TeamDAO {
         return false;
     }
 
-    /**
-     * Updates an existing Team entry.
-     */
     public boolean updateTeam(Team team) {
         String sql = "UPDATE team SET car_number = ?, team_name = ?, car_model_id = ?, nationality = ?, category = ? WHERE team_id = ?";
         Connection conn = DBConnector.getConnection();
         PreparedStatement pstmt = null;
 
         try {
-            // Note: ManufacturerId is generally fixed and not updated here.
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, team.getCarNumber());
             pstmt.setString(2, team.getTeamName());
@@ -198,12 +179,7 @@ public class TeamDAO {
         }
     }
 
-    /**
-     * Deletes a Team entry. NOTE: This will require CASCADE delete on
-     * team_driver table or manual deletion first.
-     */
     public boolean deleteTeam(Team team) {
-        // Need to delete drivers assignment first due to Foreign Key constraint
         if (!saveTeamDrivers(team.getTeamId(), FXCollections.emptyObservableList())) {
             System.err.println("Failed to clear driver assignments for team " + team.getTeamId());
             return false;

@@ -21,42 +21,27 @@ public class DriverSimpleEditDialogController {
 
     @FXML
     private void initialize() {
-        // No initialization needed beyond default component states
     }
 
-    /**
-     * Sets the stage of this dialog.
-     */
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
     }
 
-    /**
-     * Sets the driver to be edited/created in the dialog.
-     */
     public void setDriver(Driver driver) {
         this.driver = driver;
 
-        // This is primarily for adding new drivers, so fields start empty/null
         firstNameField.setText(driver.getFirstName());
         lastNameField.setText(driver.getLastName());
         nationalityField.setText(driver.getNationality());
     }
 
-    /**
-     * Returns true if the user clicked OK.
-     */
     public boolean isOkClicked() {
         return okClicked;
     }
 
-    /**
-     * Called when the user clicks ok (OK).
-     */
     @FXML
     private void handleOk() {
         if (isInputValid()) {
-            // Update the Driver object properties
             driver.setFirstName(firstNameField.getText());
             driver.setLastName(lastNameField.getText());
             driver.setNationality(nationalityField.getText());
@@ -65,18 +50,13 @@ public class DriverSimpleEditDialogController {
             dialogStage.close();
         }
     }
-
-    /**
-     * Called when the user clicks cancel.
-     */
+    
     @FXML
     private void handleCancel() {
         dialogStage.close();
     }
 
-    /**
-     * Validates the user input in the text fields.
-     */
+    
     private boolean isInputValid() {
         String errorMessage = "";
 

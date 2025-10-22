@@ -20,9 +20,6 @@ public class CircuitDAO {
         return instance;
     }
 
-    /**
-     * Fetches all circuits in the database.
-     */
     public ObservableList<Circuit> getAllCircuits() {
         ObservableList<Circuit> circuits = FXCollections.observableArrayList();
         String sql = "SELECT * FROM circuit ORDER BY name";
@@ -45,9 +42,6 @@ public class CircuitDAO {
         return circuits;
     }
 
-    /**
-     * Inserts a new circuit.
-     */
     public boolean insertCircuit(Circuit circuit) {
         String sql = "INSERT INTO circuit (name, location, country, length_km, race_type) VALUES (?, ?, ?, ?, ?)";
         Connection conn = DBConnector.getConnection();
@@ -65,7 +59,7 @@ public class CircuitDAO {
             if (rowsAffected > 0) {
                 ResultSet generatedKeys = pstmt.getGeneratedKeys();
                 if (generatedKeys.next()) {
-                    circuit.setCircuitId(generatedKeys.getInt(1)); // Update object ID
+                    circuit.setCircuitId(generatedKeys.getInt(1));
                 }
                 return true;
             }
@@ -78,9 +72,6 @@ public class CircuitDAO {
         return false;
     }
 
-    /**
-     * Updates an existing circuit.
-     */
     public boolean updateCircuit(Circuit circuit) {
         String sql = "UPDATE circuit SET name = ?, location = ?, country = ?, length_km = ?, race_type = ? WHERE circuit_id = ?";
         Connection conn = DBConnector.getConnection();
@@ -104,9 +95,6 @@ public class CircuitDAO {
         }
     }
 
-    /**
-     * Deletes a circuit.
-     */
     public boolean deleteCircuit(Circuit circuit) {
         String sql = "DELETE FROM circuit WHERE circuit_id = ?";
         Connection conn = DBConnector.getConnection();
@@ -118,7 +106,6 @@ public class CircuitDAO {
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
-            // Check if it's currently used in a championship (Foreign Key constraint check needed in a real app)
             System.err.println("Error deleting circuit: " + e.getMessage());
             return false;
         } finally {

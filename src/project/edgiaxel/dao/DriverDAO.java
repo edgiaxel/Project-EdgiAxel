@@ -20,9 +20,6 @@ public class DriverDAO {
         return instance;
     }
 
-    /**
-     * Fetches all drivers in the database.
-     */
     public ObservableList<Driver> getAllDrivers() {
         ObservableList<Driver> drivers = FXCollections.observableArrayList();
         String sql = "SELECT * FROM driver ORDER BY last_name, first_name";
@@ -43,9 +40,6 @@ public class DriverDAO {
         return drivers;
     }
 
-    /**
-     * Inserts a new driver into the global pool.
-     */
     public boolean insertDriver(Driver driver) {
         String sql = "INSERT INTO driver (first_name, last_name, nationality) VALUES (?, ?, ?)";
         Connection conn = DBConnector.getConnection();
@@ -61,7 +55,7 @@ public class DriverDAO {
             if (rowsAffected > 0) {
                 ResultSet generatedKeys = pstmt.getGeneratedKeys();
                 if (generatedKeys.next()) {
-                    driver.setDriverId(generatedKeys.getInt(1)); // Update object ID
+                    driver.setDriverId(generatedKeys.getInt(1));
                 }
                 return true;
             }
@@ -74,9 +68,6 @@ public class DriverDAO {
         return false;
     }
 
-    /**
-     * Deletes a driver from the global pool.
-     */
     public boolean deleteDriver(Driver driver) {
         String sql = "DELETE FROM driver WHERE driver_id = ?";
         Connection conn = DBConnector.getConnection();
@@ -99,9 +90,6 @@ public class DriverDAO {
         }
     }
 
-    /**
-     * Updates an existing driver’s details in the database.
-     */
     public boolean updateDriver(Driver driver) {
         String sql = "UPDATE driver SET first_name = ?, last_name = ?, nationality = ? WHERE driver_id = ?";
         Connection conn = DBConnector.getConnection();

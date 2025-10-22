@@ -24,7 +24,7 @@
                               <Font name="System Bold" size="14.0" />
                           </font>
                       </Label>
-                      <ComboBox fx:id="yearComboBox" editable="true" prefWidth="120.0" promptText="e.g., 2025" style="-fx-background-color: #3b3b3b; -fx-text-fill: WHITE;" />
+                      <ComboBox fx:id="yearComboBox" editable="false" prefWidth="120.0" promptText="e.g., 2025" style="-fx-text-fill: WHITE;" />
                       <Button mnemonicParsing="false" onAction="#handleCheckYear" style="-fx-background-color: #3b82f6; -fx-text-fill: WHITE; -fx-font-weight: bold;" text="VALIDATE YEAR" />
                       <Separator orientation="VERTICAL" />
                       <Label fx:id="statusLabel" text="STATUS: READY FOR START" textFill="#00b386">
@@ -35,7 +35,7 @@
                   </children>
                </HBox>
                
-               <TitledPane animated="false" collapsible="false" style="-fx-border-color: #3b82f6; -fx-text-fill: WHITE;" text="[STEP 1] WEC CIRCUIT CALENDAR SELECTION (Min 1 Circuit)">
+               <TitledPane animated="false" collapsible="false" style="" text="[STEP 1] WEC CIRCUIT CALENDAR SELECTION (Min 1 Circuit)">
                    <content>
                        <AnchorPane style="-fx-background-color: #2a2a2a;">
                           <children>
@@ -45,7 +45,7 @@
                    </content>
                </TitledPane>
                
-               <TitledPane animated="false" collapsible="false" prefHeight="400.0" style="-fx-border-color: #e50f0f; -fx-text-fill: WHITE;" text="[STEP 2] TEAM ENTRY SELECTION (FILTERING)">
+               <TitledPane animated="false" collapsible="false" prefHeight="400.0" style="" text="[STEP 2] TEAM ENTRY SELECTION (FILTERING)">
                    <content>
                        <GridPane hgap="15.0" style="-fx-padding: 10; -fx-background-color: #2a2a2a;" vgap="10.0">
                            <columnConstraints>

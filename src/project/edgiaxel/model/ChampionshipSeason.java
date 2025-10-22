@@ -8,9 +8,8 @@ public class ChampionshipSeason {
 
     private final IntegerProperty seasonId;
     private final IntegerProperty year;
-    private final StringProperty status; // 'Created', 'Ongoing', 'Finished'
+    private final StringProperty status; 
 
-    // List of circuits planned for this season (not a DB field, but a working property)
     private ObservableList<Circuit> circuits;
 
     public ChampionshipSeason(int seasonId, int year, String status) {
@@ -19,7 +18,6 @@ public class ChampionshipSeason {
         this.status = new SimpleStringProperty(status);
     }
 
-    // --- Properties ---
     public IntegerProperty seasonIdProperty() {
         return seasonId;
     }
@@ -32,7 +30,6 @@ public class ChampionshipSeason {
         return status;
     }
 
-    // --- Getters ---
     public int getSeasonId() {
         return seasonId.get();
     }
@@ -49,7 +46,6 @@ public class ChampionshipSeason {
         return circuits;
     }
 
-    // --- Setters ---
     public void setSeasonId(int seasonId) {
         this.seasonId.set(seasonId);
     }

@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.util.Optional;
 
 public class MasterDataViewController {
-// --- FXML Components ---
 
     @FXML
     private TableView<Manufacturer> manufacturerTable;
@@ -48,29 +47,23 @@ public class MasterDataViewController {
     @FXML
     private Label circuitStatusLabel;
 
-    // --- Data DAOs (Using Singleton Instances as planned) ---
     private final ManufacturerDAO manufacturerDAO = ManufacturerDAO.getInstance();
     private final TeamDAO teamDAO = TeamDAO.getInstance();
     private final CircuitDAO circuitDAO = CircuitDAO.getInstance();
 
-    // --- Initialization ---
     @FXML
     private void initialize() {
-        // Initialize Manufacturer Table
         setupManufacturerTable();
         loadManufacturerData();
         manufacturerTable.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) -> showManufacturerDetails(newValue));
 
-        // Initialize Team Table
         setupTeamTable();
         teamTable.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) -> showTeamDetails(newValue));
 
-        // Initialize Driver Table 
         setupDriverTable();
 
-        // Initialize Circuit Table
         setupCircuitTable();
         loadCircuitData();
         circuitTable.getSelectionModel().selectedItemProperty().addListener(
@@ -82,7 +75,6 @@ public class MasterDataViewController {
     
     
 
-    // --- Table Setup Methods ---
     private void setupManufacturerTable() {
         manufacturerTable.getColumns().clear();
         TableColumn<Manufacturer, Integer> idCol = new TableColumn<>("ID");
@@ -119,7 +111,7 @@ public class MasterDataViewController {
         TableColumn<Driver, String> nameCol = new TableColumn<>("Name");
         nameCol.setCellValueFactory(new PropertyValueFactory<>("fullName"));
         nameCol.setPrefWidth(250);
-        TableColumn<Driver, String> nationalityCol = new TableColumn<>("Nationality"); // Re-adding the nationality column
+        TableColumn<Driver, String> nationalityCol = new TableColumn<>("Nationality");
         nationalityCol.setCellValueFactory(new PropertyValueFactory<>("nationality"));
         nationalityCol.setPrefWidth(150);
         driverTable.getColumns().setAll(driverIdCol, nameCol, nationalityCol);
@@ -145,10 +137,8 @@ public class MasterDataViewController {
     
     
 
-    // --- Data Loading and Selection Handlers ---
     private void loadManufacturerData() {
         manufacturerTable.setItems(manufacturerDAO.getAllManufacturers());
-        // Clear dependent tables
         teamTable.getItems().clear();
         driverTable.getItems().clear();
         teamHeader.setText("2. TEAM ENTRIES (Select Manufacturer Above)");
@@ -167,18 +157,15 @@ public class MasterDataViewController {
         if (manufacturer != null) {
             teamHeader.setText("2. TEAM ENTRIES for: " + manufacturer.getName());
             
-            // Load Teams related to the selected manufacturer
             teamTable.setItems(teamDAO.getTeamsByManufacturerId(manufacturer.getManufacturerId()));
             
             driverTable.getItems().clear();
             driverHeader.setText("3. DRIVERS (Current Roster for Selected Team)");
             
-            // Load Manufacturer Image (Logo)
             try {
-                // Assuming image paths are valid resource paths
                 Image logo = new Image(getClass().getResourceAsStream(manufacturer.getLogoPath()));
                 masterImageView.setImage(logo);
-                imageStatusLabel.setText(manufacturer.getName() + " Logo.");
+                imageStatusLabel.setText(manufacturer.getName() + " Image.");
             } catch (Exception e) {
                 masterImageView.setImage(null);
                 imageStatusLabel.setText("Could not load logo for " + manufacturer.getName() + ".");
@@ -192,19 +179,16 @@ public class MasterDataViewController {
         if (team != null) {
             driverHeader.setText("3. DRIVERS for: " + team.getTeamName() + " #" + team.getCarNumber());
             
-            // Load Drivers related to the selected team (drivers are already fetched by TeamDAO's getTeamsByManufacturerId)
             driverTable.setItems(team.getDrivers()); 
             
-            // Load Team Image (Livery)
-            try {
-                // Assuming image paths are valid resource paths
+            /*try {
                 Image livery = new Image(getClass().getResourceAsStream(team.getLiveryPath()));
                 masterImageView.setImage(livery);
                 imageStatusLabel.setText(team.getTeamName() + " Livery #" + team.getCarNumber() + ".");
             } catch (Exception e) {
                 masterImageView.setImage(null);
                 imageStatusLabel.setText("Could not load livery for " + team.getTeamName() + ".");
-            }
+            }*/
         } else {
              driverTable.getItems().clear();
         }
@@ -212,7 +196,6 @@ public class MasterDataViewController {
     
     private void showCircuitDetails(Circuit circuit) {
         if (circuit != null) {
-              // Load Circuit Image (Map)
             try {
                 Image map = new Image(getClass().getResourceAsStream(circuit.getMapPath()));
                 circuitImageView.setImage(map);
@@ -233,14 +216,13 @@ public class MasterDataViewController {
     
     
 
-    // --- Manufacturer CRUD Handlers ---
     @FXML
     private void handleAddManufacturer() {
-        Manufacturer newManufacturer = new Manufacturer(0, "", "", "Hypercar"); // Default
+        Manufacturer newManufacturer = new Manufacturer(0, "", "", "Hypercar"); 
         boolean okClicked = showManufacturerEditDialog(newManufacturer);
         if (okClicked) {
             if (manufacturerDAO.insertManufacturer(newManufacturer)) {
-                loadManufacturerData(); // Refresh table
+                loadManufacturerData(); 
             } else {
                 showAlert("Error", "Failed to add manufacturer. Check logs for FK violations or DB connection.");
             }
@@ -254,7 +236,6 @@ public class MasterDataViewController {
             boolean okClicked = showManufacturerEditDialog(selectedManufacturer);
             if (okClicked) {
                 if (manufacturerDAO.updateManufacturer(selectedManufacturer)) {
-                    // Update the item in the ObservableList to refresh the TableView
                     manufacturerTable.getSelectionModel().select(selectedManufacturer);
                     manufacturerTable.refresh();
                 } else {
@@ -302,7 +283,7 @@ public class MasterDataViewController {
         boolean okClicked = showTeamEditDialog(newTeam);
         if (okClicked) {
             if (teamDAO.insertTeam(newTeam)) {
-                 showManufacturerDetails(selectedManufacturer); // Refresh team table
+                 showManufacturerDetails(selectedManufacturer); 
             } else {
                 showAlert("Error", "Failed to add team. Check if car number is unique or if car model is selected.");
             }
@@ -339,7 +320,7 @@ public class MasterDataViewController {
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 if (teamDAO.deleteTeam(selectedTeam)) {
-                    showManufacturerDetails(selectedManufacturer); // Refresh team table
+                    showManufacturerDetails(selectedManufacturer);
                 } else {
                     showAlert("Error", "Failed to delete team.");
                 }
@@ -354,7 +335,6 @@ public class MasterDataViewController {
         Team selectedTeam = teamTable.getSelectionModel().getSelectedItem();
         if (selectedTeam != null) {
             showDriverAssignmentDialog(selectedTeam);
-            // Refresh driver list after dialog closes
             selectedTeam.setDrivers(teamDAO.getDriversForTeam(selectedTeam.getTeamId()));
             driverTable.setItems(selectedTeam.getDrivers());
             driverTable.refresh();
@@ -368,11 +348,9 @@ public class MasterDataViewController {
     
     
 
-    // --- Circuit CRUD Handlers (New) ---
-    
     @FXML
     private void handleAddCircuit() {
-        Circuit newCircuit = new Circuit(0, "", "", "", 0.0, "6 Hours"); // Default
+        Circuit newCircuit = new Circuit(0, "", "", "", 0.0, "6 Hours"); 
         boolean okClicked = showCircuitEditDialog(newCircuit);
         if (okClicked) { 
            if (circuitDAO.insertCircuit(newCircuit)) { 
@@ -427,8 +405,6 @@ public class MasterDataViewController {
     
     
 
-    // --- Dialog Pop-up Handlers ---
-    // Helper method to show Manufacturer Edit Dialog
     private boolean showManufacturerEditDialog(Manufacturer manufacturer) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/ManufacturerEditDialog.fxml"));
@@ -522,7 +498,6 @@ public class MasterDataViewController {
         }
     }
 
-    // Helper to show generic alert
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -531,7 +506,6 @@ public class MasterDataViewController {
         alert.showAndWait();
     }
 
-    // --- Navigation ---
     @FXML
     private void handleBackToDashboard(ActionEvent event) {
         try {

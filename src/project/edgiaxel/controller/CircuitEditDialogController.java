@@ -29,7 +29,6 @@ public class CircuitEditDialogController {
 
     @FXML
     private void initialize() {
-        // Initialize the ComboBox with the WEC defined race types
         raceTypeComboBox.setItems(FXCollections.observableArrayList("6 Hours", "8–10 Hours", "24 Hours"));
     }
 

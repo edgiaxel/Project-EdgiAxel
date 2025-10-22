@@ -21,9 +21,9 @@
 <AnchorPane prefHeight="800.0" prefWidth="1200.0" style="-fx-background-color: #1a1a1a;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="project.edgiaxel.controller.DashboardController">
     <children>
         <ImageView fitHeight="800.0" fitWidth="1200.0" opacity="0.1" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-            <image>
-                <Image url="file:/C:/Users/Axel%20Zeed/Downloads/Pemrograman%20Berbasis%20Objek%20Lanjut/Latihan/Project-EdgiAxel/assets/Dashboard_Background.jpg" /> 
-            </image>
+         <image>
+            <Image url="@../../../images/Dashboard_Background.jpg" />
+         </image>
         </ImageView>
 
         <HBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">

@@ -8,18 +8,16 @@ public class Team {
     private final IntegerProperty teamId;
     private final StringProperty carNumber;
     private final StringProperty teamName;
-    private final IntegerProperty manufacturerId; // FK
-    private final IntegerProperty carModelId;     // FK
+    private final IntegerProperty manufacturerId;
+    private final IntegerProperty carModelId;
     private final StringProperty nationality;
-    private final StringProperty category; // Hypercar or LMGT3
-    private final StringProperty liveryPath; // Path to team's specific car livery
+    private final StringProperty category;
+    private final StringProperty liveryPath;
 
-    // Related objects (set after loading)
     private Manufacturer manufacturer;
     private CarModel carModel;
     private ObservableList<Driver> drivers;
 
-    // Constructor
     public Team(int teamId, String carNumber, String teamName, int manufacturerId, int carModelId, String nationality, String category) {
         this.teamId = new SimpleIntegerProperty(teamId);
         this.carNumber = new SimpleStringProperty(carNumber);
@@ -28,10 +26,11 @@ public class Team {
         this.carModelId = new SimpleIntegerProperty(carModelId);
         this.nationality = new SimpleStringProperty(nationality);
         this.category = new SimpleStringProperty(category);
-        this.liveryPath = new SimpleStringProperty("/images/teams/" + teamName.replaceAll("\\s+", "_") + "_" + carNumber + ".png");
+        String shortManufacturerName = teamName.split(" ")[0].toLowerCase();
+
+        this.liveryPath = new SimpleStringProperty("/images/team_" + shortManufacturerName + "_" + carNumber + ".jpg");
     }
 
-    // --- Properties for TableView ---
     public IntegerProperty teamIdProperty() {
         return teamId;
     }
@@ -56,12 +55,10 @@ public class Team {
         return liveryPath;
     }
 
-    // Convenience property for display
     public StringProperty carModelNameProperty() {
         return new SimpleStringProperty(carModel != null ? carModel.getModelName() : "Loading...");
     }
 
-    // --- Getters ---
     public int getTeamId() {
         return teamId.get();
     }
@@ -106,7 +103,6 @@ public class Team {
         return drivers;
     }
 
-    // --- Setters ---
     public void setTeamId(int teamId) {
         this.teamId.set(teamId);
     }
@@ -151,7 +147,6 @@ public class Team {
         this.drivers = drivers;
     }
 
-    // --- ToString() ---
     @Override
     public String toString() {
         return "#" + carNumber.get() + " " + teamName.get() + " (" + category.get() + ")";

@@ -23,30 +23,15 @@ public class ManufacturerEditDialogController {
     private Manufacturer manufacturer;
     private boolean okClicked = false;
 
-    /**
-     * Initializes the controller class. This method is automatically called
-     * after the file has been loaded.
-     */
     @FXML
     private void initialize() {
-        // Initialize the category ComboBox with fixed values
         categoryComboBox.setItems(FXCollections.observableArrayList("Hypercar", "LMGT3"));
     }
 
-    /**
-     * Sets the stage of this dialog.
-     *
-     * @param dialogStage
-     */
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
     }
-
-    /**
-     * Sets the manufacturer to be edited in the dialog.
-     *
-     * @param manufacturer
-     */
+    
     public void setManufacturer(Manufacturer manufacturer) {
         this.manufacturer = manufacturer;
 
@@ -60,22 +45,13 @@ public class ManufacturerEditDialogController {
         categoryComboBox.getSelectionModel().select(manufacturer.getCategory());
     }
 
-    /**
-     * Returns true if the user clicked OK, false otherwise.
-     *
-     * @return
-     */
     public boolean isOkClicked() {
         return okClicked;
     }
 
-    /**
-     * Called when the user clicks ok (SAVE).
-     */
     @FXML
     private void handleOk() {
         if (isInputValid()) {
-            // Update the Manufacturer object properties
             manufacturer.setName(nameField.getText());
             manufacturer.setCountry(countryField.getText());
             manufacturer.setCategory(categoryComboBox.getSelectionModel().getSelectedItem());
@@ -85,19 +61,11 @@ public class ManufacturerEditDialogController {
         }
     }
 
-    /**
-     * Called when the user clicks cancel.
-     */
     @FXML
     private void handleCancel() {
         dialogStage.close();
     }
 
-    /**
-     * Validates the user input in the text fields.
-     *
-     * * @return true if the input is valid
-     */
     private boolean isInputValid() {
         String errorMessage = "";
 
@@ -114,7 +82,6 @@ public class ManufacturerEditDialogController {
         if (errorMessage.length() == 0) {
             return true;
         } else {
-            // Show the error message.
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.initOwner(dialogStage);
             alert.setTitle("Invalid Fields");

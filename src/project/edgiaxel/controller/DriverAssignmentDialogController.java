@@ -35,7 +35,6 @@ public class DriverAssignmentDialogController {
 
     @FXML
     private void initialize() {
-        // Set the cell factories to display full names
         availableDriverList.setCellFactory(lv -> new ListCell<Driver>() {
             @Override
             protected void updateItem(Driver driver, boolean empty) {
@@ -60,20 +59,18 @@ public class DriverAssignmentDialogController {
         this.team = team;
         teamLabel.setText("Selected Team: #" + team.getCarNumber() + " " + team.getTeamName() + " - " + team.getCategory());
 
-        // Load all drivers and initialize lists
         loadDriverData();
         updateLists();
     }
 
     private void loadDriverData() {
         allDrivers = driverDAO.getAllDrivers();
-        // Create a working copy of the current team drivers
         currentTeamDrivers = FXCollections.observableArrayList(teamDAO.getDriversForTeam(team.getTeamId()));
     }
 
     private void updateLists() {
         ObservableList<Driver> available = FXCollections.observableArrayList(allDrivers);
-        available.removeAll(currentTeamDrivers); // Remove drivers already assigned
+        available.removeAll(currentTeamDrivers);
 
         availableDriverList.setItems(available);
         teamDriverList.setItems(currentTeamDrivers);
@@ -85,9 +82,9 @@ public class DriverAssignmentDialogController {
         driverCountLabel.setText("Total: " + count + " / 4 (Min 3 / Max 4)");
 
         if (count < 3 || count > 4) {
-            driverCountLabel.setStyle("-fx-text-fill: #e50f0f; -fx-font-weight: bold;"); // Red for invalid count
+            driverCountLabel.setStyle("-fx-text-fill: #e50f0f; -fx-font-weight: bold;"); 
         } else {
-            driverCountLabel.setStyle("-fx-text-fill: #00b386; -fx-font-weight: bold;"); // Green for valid count
+            driverCountLabel.setStyle("-fx-text-fill: #00b386; -fx-font-weight: bold;");
         }
     }
 
@@ -119,8 +116,8 @@ public class DriverAssignmentDialogController {
         boolean okClicked = showDriverSimpleEditDialog(newDriver);
         if (okClicked) {
             if (driverDAO.insertDriver(newDriver)) {
-                loadDriverData(); // Reload all drivers to include the new one
-                updateLists(); // Refresh lists
+                loadDriverData(); 
+                updateLists();
             } else {
                 showAlert("Error", "Failed to add new driver to the database.");
             }

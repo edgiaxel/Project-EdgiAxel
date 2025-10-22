@@ -60,7 +60,7 @@
                       
                       <VBox prefHeight="680.0" prefWidth="900.0" HBox.hgrow="ALWAYS">
                          <children>
-                             <TitledPane fx:id="resultPane" animated="false" collapsible="false" prefHeight="724.0" prefWidth="924.0" style="-fx-border-color: #e50f0f; -fx-text-fill: WHITE;" text="LATEST SESSION RESULTS: [SESSION NAME]" VBox.vgrow="ALWAYS">
+                             <TitledPane fx:id="resultPane" animated="false" collapsible="false" prefHeight="724.0" prefWidth="924.0" text="LATEST SESSION RESULTS: [SESSION NAME]" VBox.vgrow="ALWAYS">
                                  <content>
                                      <AnchorPane style="-fx-background-color: #1c1c1c; -fx-padding: 10;">
                                         <children>
