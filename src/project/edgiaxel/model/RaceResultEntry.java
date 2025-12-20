@@ -11,16 +11,19 @@ public class RaceResultEntry {
     private final StringProperty carNumber;
     private final StringProperty teamName;
     private final StringProperty carModel;
-    private final StringProperty bestTimeOrLaps; 
+    private final StringProperty bestTimeOrLaps;
     private final StringProperty category;
+    // Yuura: Added this so we don't lose the team identity!
+    private final int teamId;
 
-    public RaceResultEntry(int position, String carNumber, String teamName, String carModel, String bestTimeOrLaps, String category) {
+    public RaceResultEntry(int position, String carNumber, String teamName, String carModel, String bestTimeOrLaps, String category, int teamId) {
         this.position = new SimpleIntegerProperty(position);
         this.carNumber = new SimpleStringProperty(carNumber);
         this.teamName = new SimpleStringProperty(teamName);
         this.carModel = new SimpleStringProperty(carModel);
         this.bestTimeOrLaps = new SimpleStringProperty(bestTimeOrLaps);
         this.category = new SimpleStringProperty(category);
+        this.teamId = teamId;
     }
 
     public IntegerProperty positionProperty() {
@@ -71,6 +74,10 @@ public class RaceResultEntry {
         return category.get();
     }
 
+    public int getTeamId() {
+        return teamId;
+    }
+
     public void setPosition(int position) {
         this.position.set(position);
     }
@@ -97,9 +104,7 @@ public class RaceResultEntry {
 
     @Override
     public String toString() {
-        return String.format(
-                "Pos: %d | #%s | %s | %s | %s | %s",
-                getPosition(), getCarNumber(), getTeamName(), getCarModel(), getBestTimeOrLaps(), getCategory()
-        );
+        return String.format("Pos: %d | #%s | %s | %s | %s | %s",
+                getPosition(), getCarNumber(), getTeamName(), getCarModel(), getBestTimeOrLaps(), getCategory());
     }
 }

@@ -1,5 +1,6 @@
 package project.edgiaxel.controller;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -10,6 +11,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import project.edgiaxel.dao.StandingsDAO;
 import project.edgiaxel.model.Circuit;
 import project.edgiaxel.model.RaceResultEntry;
+
+import java.util.stream.Collectors;
 
 public class RaceResultDetailsTabController {
 
@@ -28,12 +31,38 @@ public class RaceResultDetailsTabController {
 
     @FXML
     private void initialize() {
+        // Yuuki: "Initializing the columns... at least this part is automated."
         setupResultTableColumns(raceResultTable);
         setupResultTableColumns(qualiResultTable);
         setupResultTableColumns(fpResultTable);
     }
 
+    public void loadCircuitResults(int year, Circuit circuit) {
+        if (circuit == null) {
+            return;
+        }
+
+        circuitHeaderLabel.setText("RESULTS FOR " + circuit.getName().toUpperCase() + " - " + circuit.getRaceType());
+
+        // Fetching the raw lists from the database
+        ObservableList<RaceResultEntry> raceResults = standingsDAO.getSessionResults(year, circuit.getCircuitId(), "RACE");
+        ObservableList<RaceResultEntry> qualiResults = standingsDAO.getSessionResults(year, circuit.getCircuitId(), "QUALIFYING");
+        ObservableList<RaceResultEntry> fpResults = standingsDAO.getSessionResults(year, circuit.getCircuitId(), "FP%");
+
+        // Populating the tables
+        raceResultTable.setItems(raceResults);
+        qualiResultTable.setItems(qualiResults);
+        fpResultTable.setItems(fpResults);
+
+        // Refresh to ensure the data binds to the UI immediately
+        raceResultTable.refresh();
+        qualiResultTable.refresh();
+        fpResultTable.refresh();
+    }
+
     private void setupResultTableColumns(TableView<RaceResultEntry> table) {
+        table.getColumns().clear();
+
         TableColumn<RaceResultEntry, Integer> posCol = new TableColumn<>("POS");
         posCol.setCellValueFactory(new PropertyValueFactory<>("position"));
         posCol.setPrefWidth(50);
@@ -44,36 +73,20 @@ public class RaceResultDetailsTabController {
 
         TableColumn<RaceResultEntry, String> teamCol = new TableColumn<>("TEAM");
         teamCol.setCellValueFactory(new PropertyValueFactory<>("teamName"));
-        teamCol.setPrefWidth(250);
+        teamCol.setPrefWidth(220);
 
         TableColumn<RaceResultEntry, String> modelCol = new TableColumn<>("CAR MODEL");
         modelCol.setCellValueFactory(new PropertyValueFactory<>("carModel"));
-        modelCol.setPrefWidth(200);
+        modelCol.setPrefWidth(180);
 
         TableColumn<RaceResultEntry, String> timeCol = new TableColumn<>("TIME / LAPS");
         timeCol.setCellValueFactory(new PropertyValueFactory<>("bestTimeOrLaps"));
-        timeCol.setPrefWidth(150);
+        timeCol.setPrefWidth(120);
 
-        TableColumn<RaceResultEntry, String> catCol = new TableColumn<>("CATEGORY");
+        TableColumn<RaceResultEntry, String> catCol = new TableColumn<>("CAT");
         catCol.setCellValueFactory(new PropertyValueFactory<>("category"));
-        catCol.setPrefWidth(100);
+        catCol.setPrefWidth(80);
 
         table.getColumns().addAll(posCol, numCol, teamCol, modelCol, timeCol, catCol);
-    }
-
-    public void loadRaceData(int year, Circuit circuit) {
-        circuitHeaderLabel.setText(String.format("RESULTS FOR %s, %s (%s)",
-                circuit.getName(),
-                circuit.getCountry(),
-                circuit.getRaceType()));
-
-        ObservableList<RaceResultEntry> raceResults = standingsDAO.getRaceResults(year, circuit.getCircuitId(), "RACE_OVERALL");
-        raceResultTable.setItems(raceResults);
-
-        ObservableList<RaceResultEntry> qualiResults = standingsDAO.getRaceResults(year, circuit.getCircuitId(), "QUALIFYING");
-        qualiResultTable.setItems(qualiResults);
-
-        ObservableList<RaceResultEntry> fpResults = standingsDAO.getRaceResults(year, circuit.getCircuitId(), "FREE_PRACTICE");
-        fpResultTable.setItems(fpResults);
     }
 }

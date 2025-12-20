@@ -10,7 +10,8 @@ public class ManufacturerDAO {
 
     private static ManufacturerDAO instance;
 
-    private ManufacturerDAO() {}
+    private ManufacturerDAO() {
+    }
 
     public static ManufacturerDAO getInstance() {
         if (instance == null) {
@@ -18,14 +19,12 @@ public class ManufacturerDAO {
         }
         return instance;
     }
-    
+
     public ObservableList<Manufacturer> getAllManufacturers() {
         ObservableList<Manufacturer> manufacturers = FXCollections.observableArrayList();
         String sql = "SELECT * FROM manufacturer";
 
-        try (Connection conn = DBConnector.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try (Connection conn = DBConnector.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 manufacturers.add(new Manufacturer(
@@ -89,26 +88,29 @@ public class ManufacturerDAO {
             DBConnector.closeConnection(conn);
         }
     }
-    
-    public boolean deleteManufacturer(Manufacturer manufacturer) {
-        String sql = "DELETE FROM manufacturer WHERE manufacturer_id = ?";
-        Connection conn = DBConnector.getConnection();
-        PreparedStatement pstmt = null;
 
-        try {
-            pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, manufacturer.getManufacturerId());
-            int rowsAffected = pstmt.executeUpdate();
-            return rowsAffected > 0;
-        } catch (SQLException e) {
-            if (e.getErrorCode() == 1451) { 
-                System.err.println("Error: Cannot delete manufacturer due to associated Teams/Car Models existing.");
-                return false;
+    public boolean deleteManufacturer(Manufacturer manufacturer) {
+        // Yuuna: "Check if the manufacturer still has teams before you try to kill it!"
+        String checkSql = "SELECT COUNT(*) FROM team WHERE manufacturer_id = ?";
+        String deleteSql = "DELETE FROM manufacturer WHERE manufacturer_id = ?";
+
+        try (Connection conn = DBConnector.getConnection()) {
+            try (PreparedStatement psCheck = conn.prepareStatement(checkSql)) {
+                psCheck.setInt(1, manufacturer.getManufacturerId());
+                ResultSet rs = psCheck.executeQuery();
+                if (rs.next() && rs.getInt(1) > 0) {
+                    System.err.println("Aborting Delete: Manufacturer has linked Teams.");
+                    return false; // Prevent deletion of active brands
+                }
             }
-            System.err.println("Error deleting manufacturer: " + e.getMessage());
+
+            try (PreparedStatement psDelete = conn.prepareStatement(deleteSql)) {
+                psDelete.setInt(1, manufacturer.getManufacturerId());
+                return psDelete.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
-        } finally {
-            DBConnector.closeConnection(conn);
         }
     }
 }

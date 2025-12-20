@@ -26,10 +26,10 @@ public class TeamDAO {
         ObservableList<Team> teams = FXCollections.observableArrayList();
         String sql = "SELECT * FROM team WHERE manufacturer_id = ?";
 
-        try ( Connection conn = DBConnector.getConnection();  PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnector.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, manufacturerId);
-            try ( ResultSet rs = pstmt.executeQuery()) {
+            try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Team team = new Team(
                             rs.getInt("team_id"),
@@ -59,10 +59,10 @@ public class TeamDAO {
         ObservableList<Driver> drivers = FXCollections.observableArrayList();
         String sql = "SELECT d.* FROM driver d JOIN team_driver td ON d.driver_id = td.driver_id WHERE td.team_id = ?";
 
-        try ( Connection conn = DBConnector.getConnection();  PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnector.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, teamId);
-            try ( ResultSet rs = pstmt.executeQuery()) {
+            try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     drivers.add(new Driver(
                             rs.getInt("driver_id"),
@@ -77,7 +77,7 @@ public class TeamDAO {
         }
         return drivers;
     }
-    
+
     public boolean saveTeamDrivers(int teamId, ObservableList<Driver> newDrivers) {
         Connection conn = DBConnector.getConnection();
         if (conn == null) {
@@ -85,16 +85,16 @@ public class TeamDAO {
         }
 
         try {
-            conn.setAutoCommit(false); 
+            conn.setAutoCommit(false);
 
             String deleteSql = "DELETE FROM team_driver WHERE team_id = ?";
-            try ( PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
+            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
                 deleteStmt.setInt(1, teamId);
                 deleteStmt.executeUpdate();
             }
 
             String insertSql = "INSERT INTO team_driver (team_id, driver_id) VALUES (?, ?)";
-            try ( PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
                 for (Driver driver : newDrivers) {
                     insertStmt.setInt(1, teamId);
                     insertStmt.setInt(2, driver.getDriverId());
@@ -103,13 +103,13 @@ public class TeamDAO {
                 insertStmt.executeBatch();
             }
 
-            conn.commit(); 
+            conn.commit();
             return true;
 
         } catch (SQLException e) {
             System.err.println("Transaction failed: Failed to save team drivers: " + e.getMessage());
             try {
-                conn.rollback(); 
+                conn.rollback();
             } catch (SQLException ex) {
                 System.err.println("Rollback failed: " + ex.getMessage());
             }
@@ -200,5 +200,37 @@ public class TeamDAO {
         } finally {
             DBConnector.closeConnection(conn);
         }
+    }
+
+    public ObservableList<Team> getAllTeams() {
+        ObservableList<Team> teams = FXCollections.observableArrayList();
+        // Yuura: "Give me EVERYONE!"
+        String sql = "SELECT * FROM team";
+
+        try (Connection conn = DBConnector.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Team team = new Team(
+                        rs.getInt("team_id"),
+                        rs.getString("car_number"),
+                        rs.getString("team_name"),
+                        rs.getInt("manufacturer_id"),
+                        rs.getInt("car_model_id"),
+                        rs.getString("nationality"),
+                        rs.getString("category")
+                );
+                // Load the model object so we can see it in the table
+                CarModel carModel = CarModelDAO.getInstance().getCarModelById(team.getCarModelId());
+                team.setCarModel(carModel);
+
+                // We don't necessarily need drivers for just listing teams, but it's safer
+                team.setDrivers(getDriversForTeam(team.getTeamId()));
+
+                teams.add(team);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching ALL Teams: " + e.getMessage());
+        }
+        return teams;
     }
 }

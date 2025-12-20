@@ -287,13 +287,13 @@ public class StartChampionshipViewController {
             return;
         }
         if (championshipDAO.doesSeasonExist(selectedYear)) {
-            statusLabel.setTextFill(javafx.scene.paint.Color.valueOf("#e50f0f")); 
+            statusLabel.setTextFill(javafx.scene.paint.Color.valueOf("#e50f0f"));
             statusLabel.setText("STATUS: ERROR - Season " + selectedYear + " Already Exists!");
             startChampionshipButton.setDisable(true);
         } else {
-            statusLabel.setTextFill(javafx.scene.paint.Color.valueOf("#00b386")); 
+            statusLabel.setTextFill(javafx.scene.paint.Color.valueOf("#00b386"));
             statusLabel.setText("STATUS: VALIDATION SUCCESS - Ready to Start " + selectedYear + " Season.");
-            checkOverallReadyState(); 
+            checkOverallReadyState();
         }
     }
 
@@ -354,25 +354,42 @@ public class StartChampionshipViewController {
         if (!startChampionshipButton.isDisable()) {
             Integer year = yearComboBox.getSelectionModel().getSelectedItem();
 
-            ObservableList<Circuit> finalCircuits = allCircuitWrappers.stream()
+            // Filter the selected circuits and teams from our wrappers
+            ObservableList<Circuit> selectedCircuits = allCircuitWrappers.stream()
                     .filter(CircuitWrapper::isSelected)
-                    .map(c -> (Circuit) c) 
+                    .map(c -> (Circuit) c)
                     .collect(Collectors.toCollection(FXCollections::observableArrayList));
 
-            ObservableList<Team> finalTeams = allTeamWrappers.stream()
+            ObservableList<Team> selectedTeams = allTeamWrappers.stream()
                     .filter(TeamWrapper::isSelected)
                     .map(t -> (Team) t)
                     .collect(Collectors.toCollection(FXCollections::observableArrayList));
 
-            int newSeasonId = championshipDAO.createNewSeason(year, finalCircuits);
+            int newSeasonId = championshipDAO.createNewSeason(year, selectedCircuits);
 
             if (newSeasonId != -1) {
-                showAlert("Success", "Season " + year + " created successfully! Proceeding to the first race.");
-
-                handleSwitchToRaceManagement(event, newSeasonId, finalCircuits, finalTeams);
+                switchToRaceManagement(event, newSeasonId, year, selectedCircuits, selectedTeams);
             } else {
                 showAlert("System Error", "Failed to start championship. Database operation failed.");
             }
+        }
+    }
+
+    private void switchToRaceManagement(ActionEvent event, int seasonId, int year, ObservableList<Circuit> circuits, ObservableList<Team> teams) {
+        try {
+            Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/RaceManagementView.fxml"));
+            Parent root = loader.load();
+
+            // Get the controller and PASS the data
+            RaceManagementViewController controller = loader.getController();
+            controller.initData(seasonId, year, circuits, teams);
+
+            stage.setTitle("WEC Race Management - " + year);
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

@@ -24,7 +24,7 @@ public class CircuitDAO {
         ObservableList<Circuit> circuits = FXCollections.observableArrayList();
         String sql = "SELECT * FROM circuit ORDER BY name";
 
-        try ( Connection conn = DBConnector.getConnection();  Statement stmt = conn.createStatement();  ResultSet rs = stmt.executeQuery(sql)) {
+        try (Connection conn = DBConnector.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 circuits.add(new Circuit(
@@ -44,30 +44,21 @@ public class CircuitDAO {
 
     public boolean insertCircuit(Circuit circuit) {
         String sql = "INSERT INTO circuit (name, location, country, length_km, race_type) VALUES (?, ?, ?, ?, ?)";
-        Connection conn = DBConnector.getConnection();
-        PreparedStatement pstmt = null;
-
-        try {
-            pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            pstmt.setString(1, circuit.getName());
-            pstmt.setString(2, circuit.getLocation());
-            pstmt.setString(3, circuit.getCountry());
-            pstmt.setDouble(4, circuit.getLengthKm());
-            pstmt.setString(5, circuit.getRaceType());
-            int rowsAffected = pstmt.executeUpdate();
-
-            if (rowsAffected > 0) {
-                ResultSet generatedKeys = pstmt.getGeneratedKeys();
-                if (generatedKeys.next()) {
-                    circuit.setCircuitId(generatedKeys.getInt(1));
+        try (Connection conn = DBConnector.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, circuit.getName());
+            ps.setString(2, circuit.getLocation());
+            ps.setString(3, circuit.getCountry());
+            ps.setDouble(4, circuit.getLengthKm());
+            ps.setString(5, circuit.getRaceType());
+            if (ps.executeUpdate() > 0) {
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    circuit.setCircuitId(rs.getInt(1));
                 }
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("Error inserting circuit: " + e.getMessage());
-            return false;
-        } finally {
-            DBConnector.closeConnection(conn);
+            e.printStackTrace();
         }
         return false;
     }

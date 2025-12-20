@@ -1,6 +1,5 @@
 package project.edgiaxel.controller;
 
-import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -23,6 +22,9 @@ import project.edgiaxel.model.Circuit;
 
 import java.io.IOException;
 import java.util.Optional;
+import javafx.collections.ObservableList;
+import project.edgiaxel.dao.CarModelDAO;
+import project.edgiaxel.model.CarModel;
 
 public class MasterDataViewController {
 
@@ -50,92 +52,138 @@ public class MasterDataViewController {
     private final ManufacturerDAO manufacturerDAO = ManufacturerDAO.getInstance();
     private final TeamDAO teamDAO = TeamDAO.getInstance();
     private final CircuitDAO circuitDAO = CircuitDAO.getInstance();
+    @FXML
+    private Label statusLabel;
 
     @FXML
     private void initialize() {
         setupManufacturerTable();
-        loadManufacturerData();
-        manufacturerTable.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> showManufacturerDetails(newValue));
-
         setupTeamTable();
-        teamTable.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> showTeamDetails(newValue));
-
         setupDriverTable();
-
         setupCircuitTable();
+
+        // 1. Load the initial data sets
+        loadManufacturerData();
         loadCircuitData();
-        circuitTable.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> showCircuitDetails(newValue));
+
+        // 2. Add Listeners with Null Checks
+        manufacturerTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                showManufacturerDetails(newVal);
+            }
+        });
+
+        teamTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                showTeamDetails(newVal);
+            }
+        });
+
+        circuitTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                showCircuitDetails(newVal);
+            }
+        });
     }
-    
-    
-    
-    
-    
+
+    private void showManufacturerDetails(Manufacturer manufacturer) {
+        if (manufacturer == null) {
+            loadManufacturerData();
+            return;
+        }
+
+        teamHeader.setText("2. TEAM ENTRIES for: " + manufacturer.getName());
+        ObservableList<Team> teams = teamDAO.getTeamsByManufacturerId(manufacturer.getManufacturerId());
+        teamTable.setItems(teams);
+
+        driverTable.getItems().clear();
+        driverHeader.setText("3. DRIVERS (Select Team Above)");
+
+        // Unified Safety Loading for Logos
+        // Path matches: /images/manufacturer_toyota.jpg
+        safeLoadImage(masterImageView, manufacturer.getLogoPath(), manufacturer.getName() + " Logo");
+    }
 
     private void setupManufacturerTable() {
         manufacturerTable.getColumns().clear();
+
         TableColumn<Manufacturer, Integer> idCol = new TableColumn<>("ID");
-        idCol.setCellValueFactory(new PropertyValueFactory<>("manufacturerId"));
+        idCol.setCellValueFactory(new PropertyValueFactory<>("manufacturerId")); // Matches getManufacturerId()
         idCol.setPrefWidth(50);
+
         TableColumn<Manufacturer, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name")); // Matches getName()
         nameCol.setPrefWidth(200);
+
         TableColumn<Manufacturer, String> categoryCol = new TableColumn<>("Category");
-        categoryCol.setCellValueFactory(new PropertyValueFactory<>("category"));
+        categoryCol.setCellValueFactory(new PropertyValueFactory<>("category")); // Matches getCategory()
         categoryCol.setPrefWidth(100);
+
         manufacturerTable.getColumns().setAll(idCol, nameCol, categoryCol);
     }
 
     private void setupTeamTable() {
         teamTable.getColumns().clear();
+
         TableColumn<Team, String> carNumberCol = new TableColumn<>("#");
         carNumberCol.setCellValueFactory(new PropertyValueFactory<>("carNumber"));
         carNumberCol.setPrefWidth(50);
+
         TableColumn<Team, String> teamNameCol = new TableColumn<>("Team Name");
         teamNameCol.setCellValueFactory(new PropertyValueFactory<>("teamName"));
         teamNameCol.setPrefWidth(250);
+
         TableColumn<Team, String> carModelCol = new TableColumn<>("Car Model");
         carModelCol.setCellValueFactory(new PropertyValueFactory<>("carModelName"));
         carModelCol.setPrefWidth(200);
-        teamTable.getColumns().setAll(carNumberCol, teamNameCol, carModelCol);
+
+        TableColumn<Team, Integer> bopCol = new TableColumn<>("BoP RATING");
+        bopCol.setCellValueFactory(data -> {
+            if (data.getValue().getCarModel() != null) {
+                return new javafx.beans.property.SimpleIntegerProperty(data.getValue().getCarModel().getBaseRating()).asObject();
+            }
+            return new javafx.beans.property.SimpleObjectProperty<>(0);
+        });
+        bopCol.setPrefWidth(100);
+
+        teamTable.getColumns().addAll(carNumberCol, teamNameCol, carModelCol, bopCol);
     }
 
     private void setupDriverTable() {
         driverTable.getColumns().clear();
+
         TableColumn<Driver, Integer> driverIdCol = new TableColumn<>("ID");
         driverIdCol.setCellValueFactory(new PropertyValueFactory<>("driverId"));
         driverIdCol.setPrefWidth(50);
+
         TableColumn<Driver, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("fullName"));
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("fullName")); // Matches getFullName()
         nameCol.setPrefWidth(250);
+
         TableColumn<Driver, String> nationalityCol = new TableColumn<>("Nationality");
         nationalityCol.setCellValueFactory(new PropertyValueFactory<>("nationality"));
         nationalityCol.setPrefWidth(150);
+
         driverTable.getColumns().setAll(driverIdCol, nameCol, nationalityCol);
     }
 
     private void setupCircuitTable() {
         circuitTable.getColumns().clear();
+
         TableColumn<Circuit, String> nameCol = new TableColumn<>("Circuit Name");
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         nameCol.setPrefWidth(250);
+
         TableColumn<Circuit, Double> lengthCol = new TableColumn<>("Length (km)");
         lengthCol.setCellValueFactory(new PropertyValueFactory<>("lengthKm"));
         lengthCol.setPrefWidth(120);
+
         TableColumn<Circuit, String> raceTypeCol = new TableColumn<>("Race Type");
         raceTypeCol.setCellValueFactory(new PropertyValueFactory<>("raceType"));
         raceTypeCol.setPrefWidth(150);
+
         circuitTable.getColumns().setAll(nameCol, lengthCol, raceTypeCol);
     }
-    
-    
-    
-    
-    
-    
 
     private void loadManufacturerData() {
         manufacturerTable.setItems(manufacturerDAO.getAllManufacturers());
@@ -153,47 +201,59 @@ public class MasterDataViewController {
         circuitStatusLabel.setText("Select a Circuit to view its map and stats.");
     }
 
-    private void showManufacturerDetails(Manufacturer manufacturer) {
-        if (manufacturer != null) {
-            teamHeader.setText("2. TEAM ENTRIES for: " + manufacturer.getName());
-            
-            teamTable.setItems(teamDAO.getTeamsByManufacturerId(manufacturer.getManufacturerId()));
-            
-            driverTable.getItems().clear();
-            driverHeader.setText("3. DRIVERS (Current Roster for Selected Team)");
-            
-            try {
-                Image logo = new Image(getClass().getResourceAsStream(manufacturer.getLogoPath()));
-                masterImageView.setImage(logo);
-                imageStatusLabel.setText(manufacturer.getName() + " Image.");
-            } catch (Exception e) {
-                masterImageView.setImage(null);
-                imageStatusLabel.setText("Could not load logo for " + manufacturer.getName() + ".");
+    private void showTeamDetails(Team team) {
+        if (team == null) {
+            return;
+        }
+
+        // 1. Update UI Labels and Drivers
+        driverHeader.setText("3. DRIVERS for: " + team.getTeamName() + " #" + team.getCarNumber());
+        if (team.getDrivers() == null || team.getDrivers().isEmpty()) {
+            team.setDrivers(teamDAO.getDriversForTeam(team.getTeamId()));
+        }
+        driverTable.setItems(team.getDrivers());
+
+        // 2. Try to load Team Livery
+        String teamLiveryPath = "/images/team_" + team.getCarNumber() + ".png";
+
+        try {
+            java.io.InputStream liveryStream = getClass().getResourceAsStream(teamLiveryPath);
+            if (liveryStream != null) {
+                // If livery exists, show it
+                masterImageView.setImage(new Image(liveryStream));
+                imageStatusLabel.setText("Livery loaded for #" + team.getCarNumber());
+            } else {
+                // Yuuki: "Livery missing... falling back to the boss's logo."
+                throw new Exception("Livery missing");
             }
-        } else {
-            loadManufacturerData();
+        } catch (Exception e) {
+            // FALLBACK: Show the Manufacturer Logo instead of a generic placeholder
+            Manufacturer selectedM = manufacturerTable.getSelectionModel().getSelectedItem();
+            if (selectedM != null) {
+                // Re-use the safeLoadImage helper to put the Manufacturer logo back up
+                safeLoadImage(masterImageView, selectedM.getLogoPath(), selectedM.getName() + " Logo (Livery Pending)");
+            } else {
+                // Absolute last resort if somehow no manufacturer is selected
+                loadPlaceholderImage("Select a manufacturer to see brand logo.");
+            }
         }
     }
 
-    private void showTeamDetails(Team team) {
-        if (team != null) {
-            driverHeader.setText("3. DRIVERS for: " + team.getTeamName() + " #" + team.getCarNumber());
-            
-            driverTable.setItems(team.getDrivers()); 
-            
-            /*try {
-                Image livery = new Image(getClass().getResourceAsStream(team.getLiveryPath()));
-                masterImageView.setImage(livery);
-                imageStatusLabel.setText(team.getTeamName() + " Livery #" + team.getCarNumber() + ".");
-            } catch (Exception e) {
+    private void loadPlaceholderImage(String message) {
+        try {
+            java.io.InputStream placeholderStream = getClass().getResourceAsStream("/images/wec_logo_placeholder.png");
+            if (placeholderStream != null) {
+                masterImageView.setImage(new Image(placeholderStream));
+            } else {
                 masterImageView.setImage(null);
-                imageStatusLabel.setText("Could not load livery for " + team.getTeamName() + ".");
-            }*/
-        } else {
-             driverTable.getItems().clear();
+            }
+            imageStatusLabel.setText(message);
+        } catch (Exception ex) {
+            masterImageView.setImage(null);
+            imageStatusLabel.setText("Image System Error.");
         }
     }
-    
+
     private void showCircuitDetails(Circuit circuit) {
         if (circuit != null) {
             try {
@@ -205,26 +265,60 @@ public class MasterDataViewController {
                 circuitStatusLabel.setText("Could not load map for " + circuit.getName() + ".");
             }
         } else {
-              circuitImageView.setImage(null);
-              circuitStatusLabel.setText("Select a Circuit to view its map and stats.");
+            circuitImageView.setImage(null);
+            circuitStatusLabel.setText("Select a Circuit to view its map and stats.");
         }
     }
-    
-    
-    
-    
-    
-    
+
+    private void refreshAllTables() {
+        loadManufacturerData(); // Reloads manufacturers
+        loadCircuitData();      // Reloads circuits
+        manufacturerTable.refresh();
+        teamTable.refresh();
+        driverTable.refresh();
+        circuitTable.refresh();
+    }
+
+// Fixed Image Loading inside showManufacturerDetails / showTeamDetails
+    private void safeLoadImage(ImageView view, String path, String description) {
+        try {
+            if (path == null || path.isEmpty()) {
+                throw new Exception("Path Null");
+            }
+
+            java.io.InputStream is = getClass().getResourceAsStream(path);
+            if (is != null) {
+                Image img = new Image(is);
+                view.setImage(img);
+                imageStatusLabel.setText("Loaded: " + description);
+            } else {
+                throw new Exception("Resource Missing");
+            }
+        } catch (Exception e) {
+            // Yuura: "Placeholder time! 🎨"
+            try {
+                java.io.InputStream placeholder = getClass().getResourceAsStream("/images/wec_logo_placeholder.png");
+                if (placeholder != null) {
+                    view.setImage(new Image(placeholder));
+                    imageStatusLabel.setText(description + " not found. showing WEC placeholder.");
+                } else {
+                    view.setImage(null);
+                    imageStatusLabel.setText("Critical Error: Placeholders missing!");
+                }
+            } catch (Exception ex) {
+                view.setImage(null);
+            }
+        }
+    }
 
     @FXML
     private void handleAddManufacturer() {
-        Manufacturer newManufacturer = new Manufacturer(0, "", "", "Hypercar"); 
-        boolean okClicked = showManufacturerEditDialog(newManufacturer);
-        if (okClicked) {
+        Manufacturer newManufacturer = new Manufacturer(0, "", "", "Hypercar");
+        if (showManufacturerEditDialog(newManufacturer)) {
             if (manufacturerDAO.insertManufacturer(newManufacturer)) {
-                loadManufacturerData(); 
+                refreshAllTables(); // FIXED: Auto-refresh
             } else {
-                showAlert("Error", "Failed to add manufacturer. Check logs for FK violations or DB connection.");
+                showAlert("Error", "Failed to add manufacturer.");
             }
         }
     }
@@ -268,9 +362,7 @@ public class MasterDataViewController {
             showAlert("No Selection", "Select a manufacturer to delete.");
         }
     }
-    
-    
-    
+
     @FXML
     private void handleAddTeam() {
         Manufacturer selectedManufacturer = manufacturerTable.getSelectionModel().getSelectedItem();
@@ -283,13 +375,13 @@ public class MasterDataViewController {
         boolean okClicked = showTeamEditDialog(newTeam);
         if (okClicked) {
             if (teamDAO.insertTeam(newTeam)) {
-                 showManufacturerDetails(selectedManufacturer); 
+                showManufacturerDetails(selectedManufacturer);
             } else {
                 showAlert("Error", "Failed to add team. Check if car number is unique or if car model is selected.");
             }
         }
     }
-    
+
     @FXML
     private void handleEditTeam() {
         Team selectedTeam = teamTable.getSelectionModel().getSelectedItem();
@@ -299,14 +391,14 @@ public class MasterDataViewController {
                 if (teamDAO.updateTeam(selectedTeam)) {
                     teamTable.refresh();
                 } else {
-                     showAlert("Error", "Failed to update team.");
+                    showAlert("Error", "Failed to update team.");
                 }
             }
         } else {
             showAlert("No Selection", "Select a team entry to edit.");
         }
     }
-    
+
     @FXML
     private void handleDeleteTeam() {
         Team selectedTeam = teamTable.getSelectionModel().getSelectedItem();
@@ -328,9 +420,13 @@ public class MasterDataViewController {
         } else {
             showAlert("No Selection", "Select a team entry to delete.");
         }
+
+        if (teamDAO.deleteTeam(selectedTeam)) {
+            refreshAllTables(); // FIXED: Auto-refresh
+        }
     }
-    
-    @FXML 
+
+    @FXML
     private void handleAddDriver() {
         Team selectedTeam = teamTable.getSelectionModel().getSelectedItem();
         if (selectedTeam != null) {
@@ -342,55 +438,50 @@ public class MasterDataViewController {
             showAlert("No Selection", "Select a team entry first to manage drivers.");
         }
     }
-    
-    
-    
-    
-    
 
     @FXML
     private void handleAddCircuit() {
-        Circuit newCircuit = new Circuit(0, "", "", "", 0.0, "6 Hours"); 
+        Circuit newCircuit = new Circuit(0, "", "", "", 0.0, "6 Hours");
         boolean okClicked = showCircuitEditDialog(newCircuit);
-        if (okClicked) { 
-           if (circuitDAO.insertCircuit(newCircuit)) { 
-               loadCircuitData(); 
-           } else {
+        if (okClicked) {
+            if (circuitDAO.insertCircuit(newCircuit)) {
+                loadCircuitData();
+            } else {
                 showAlert("Error", "Failed to add circuit. Check database connection.");
-           }
+            }
         }
     }
-    
+
     @FXML
     private void handleEditCircuit() {
-         Circuit selectedCircuit = circuitTable.getSelectionModel().getSelectedItem();
+        Circuit selectedCircuit = circuitTable.getSelectionModel().getSelectedItem();
         if (selectedCircuit != null) {
             boolean okClicked = showCircuitEditDialog(selectedCircuit);
-            if (okClicked) { 
-               if (circuitDAO.updateCircuit(selectedCircuit)) { 
-                   circuitTable.refresh(); 
-               } else {
-                   showAlert("Error", "Failed to update circuit.");
-               }
+            if (okClicked) {
+                if (circuitDAO.updateCircuit(selectedCircuit)) {
+                    circuitTable.refresh();
+                } else {
+                    showAlert("Error", "Failed to update circuit.");
+                }
             }
         } else {
             showAlert("No Selection", "Select a circuit to edit.");
         }
     }
-    
+
     @FXML
     private void handleDeleteCircuit() {
-         Circuit selectedCircuit = circuitTable.getSelectionModel().getSelectedItem();
+        Circuit selectedCircuit = circuitTable.getSelectionModel().getSelectedItem();
         if (selectedCircuit != null) {
-             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Confirm Deletion");
             alert.setHeaderText("Delete Circuit: " + selectedCircuit.getName());
             alert.setContentText("Are you sure you want to delete this circuit? This action is permanent.");
 
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
-                if (circuitDAO.deleteCircuit(selectedCircuit)) { 
-                    loadCircuitData(); 
+                if (circuitDAO.deleteCircuit(selectedCircuit)) {
+                    loadCircuitData();
                 } else {
                     showAlert("Error", "Failed to delete circuit. Check if it's currently used in a championship (future feature).");
                 }
@@ -399,11 +490,6 @@ public class MasterDataViewController {
             showAlert("No Selection", "Select a circuit to delete.");
         }
     }
-    
-    
-    
-    
-    
 
     private boolean showManufacturerEditDialog(Manufacturer manufacturer) {
         try {
@@ -427,7 +513,7 @@ public class MasterDataViewController {
             return false;
         }
     }
-    
+
     private boolean showTeamEditDialog(Team team) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/TeamEditDialog.fxml"));
@@ -451,7 +537,7 @@ public class MasterDataViewController {
             return false;
         }
     }
-    
+
     private boolean showCircuitEditDialog(Circuit circuit) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/CircuitEditDialog.fxml"));
@@ -518,5 +604,45 @@ public class MasterDataViewController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @FXML
+    private void handleEditBoP() {
+        Team selectedTeam = teamTable.getSelectionModel().getSelectedItem();
+        if (selectedTeam == null) {
+            showAlert("No Selection", "Please select a team to adjust its car's BoP!");
+            return;
+        }
+
+        CarModel model = selectedTeam.getCarModel();
+
+        // Create a fancy input dialog
+        TextInputDialog dialog = new TextInputDialog(String.valueOf(model.getBaseRating()));
+        dialog.setTitle("Balance of Performance Editor");
+        dialog.setHeaderText("Adjusting Rating for: " + model.getModelName());
+        dialog.setContentText("Enter new Base Rating (Current: " + model.getBaseRating() + "):");
+
+        // Add some styling if you want, or just get the result
+        Optional<String> result = dialog.showAndWait();
+
+        result.ifPresent(newRatingStr -> {
+            try {
+                int newRating = Integer.parseInt(newRatingStr);
+
+                // Validation: Keep it within WEC logic!
+                if (newRating < 50 || newRating > 110) {
+                    showAlert("Out of Range", "Rating should stay between 50 and 110 for simulation stability!");
+                    return;
+                }
+
+                if (CarModelDAO.getInstance().updateCarRating(model.getCarModelId(), newRating)) {
+                    model.setBaseRating(newRating);
+                    teamTable.refresh(); // Update the view!
+                    statusLabel.setText("BoP Updated: " + model.getModelName() + " is now " + newRating);
+                }
+            } catch (NumberFormatException e) {
+                showAlert("Input Error", "Please enter a valid whole number!");
+            }
+        });
     }
 }

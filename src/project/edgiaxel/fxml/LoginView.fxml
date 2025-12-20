@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane prefHeight="500.0" prefWidth="400.0" style="-fx-background-color: #1a1a1a; -fx-border-color: #e50f0f; -fx-border-width: 2;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="project.edgiaxel.controller.LoginViewController">
+    <children>
+        <VBox alignment="CENTER" spacing="20.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <Label text="WEC SIMULATOR" textFill="#e50f0f">
+                    <font>
+                        <Font name="System Bold" size="32.0" />
+                    </font>
+                </Label>
+                <Label text="DRIVER LOGIN" textFill="WHITE">
+                    <font>
+                        <Font size="18.0" />
+                    </font>
+                </Label>
+                <VBox maxWidth="300.0" spacing="10.0">
+                    <TextField fx:id="usernameField" promptText="Username" style="-fx-background-color: #333; -fx-text-fill: white;" />
+                    <PasswordField fx:id="passwordField" promptText="Password" style="-fx-background-color: #333; -fx-text-fill: white;" />
+                    <Button defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleLogin" style="-fx-background-color: #e50f0f; -fx-font-weight: bold;" text="ENTER COCKPIT" textFill="WHITE" />
+                </VBox>
+                <Label fx:id="errorLabel" textFill="#ff4444" />
+                <Hyperlink onAction="#switchToRegister" text="Request New License (Register)" textFill="#3b82f6" />
+            </children>
+        </VBox>
+    </children>
+</AnchorPane>

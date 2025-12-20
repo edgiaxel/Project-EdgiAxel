@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="550.0" prefWidth="400.0" style="-fx-background-color: #1a1a1a; -fx-border-color: #3b82f6; -fx-border-width: 2;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="project.edgiaxel.controller.RegisterViewController">
+    <children>
+        <VBox alignment="CENTER" spacing="15.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <Label text="NEW LICENSE REGISTRY" textFill="#3b82f6">
+                    <font>
+                        <Font name="System Bold" size="24.0" />
+                    </font>
+                </Label>
+                <VBox maxWidth="300.0" spacing="10.0">
+                    <TextField fx:id="fullNameField" promptText="Full Name" style="-fx-background-color: #333; -fx-text-fill: white;" />
+                    <TextField fx:id="emailField" promptText="Email Address" style="-fx-background-color: #333; -fx-text-fill: white;" />
+                    <TextField fx:id="regUsernameField" promptText="Username" style="-fx-background-color: #333; -fx-text-fill: white;" />
+                    <PasswordField fx:id="regPasswordField" promptText="Password" style="-fx-background-color: #333; -fx-text-fill: white;" />
+                    <PasswordField fx:id="confirmPasswordField" promptText="Confirm Password" style="-fx-background-color: #333; -fx-text-fill: white;" />
+                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleRegister" style="-fx-background-color: #3b82f6; -fx-font-weight: bold;" text="SUBMIT APPLICATION" textFill="WHITE" />
+                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCancel" style="-fx-background-color: #555;" text="Cancel" textFill="WHITE" />
+                </VBox>
+                <Label fx:id="statusLabel" textFill="#e50f0f" />
+            </children>
+        </VBox>
+    </children>
+</AnchorPane>

@@ -74,4 +74,6 @@ public class CarModel {
     public String toString() {
         return modelName.get() + " (BOP: " + baseRating.get() + ")";
     }
+    
+    
 }

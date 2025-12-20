@@ -8,7 +8,7 @@ public class ChampionshipSeason {
 
     private final IntegerProperty seasonId;
     private final IntegerProperty year;
-    private final StringProperty status; 
+    private final StringProperty status;
 
     private ObservableList<Circuit> circuits;
 
@@ -56,5 +56,10 @@ public class ChampionshipSeason {
 
     public void setCircuits(ObservableList<Circuit> circuits) {
         this.circuits = circuits;
+    }
+
+    @Override
+    public String toString() {
+        return "Season " + getYear();
     }
 }

@@ -24,10 +24,10 @@ public class CarModelDAO {
         String sql = "SELECT * FROM car_model WHERE car_model_id = ?";
         CarModel model = null;
 
-        try ( Connection conn = DBConnector.getConnection();  PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnector.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, carModelId);
-            try ( ResultSet rs = pstmt.executeQuery()) {
+            try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     model = new CarModel(
                             rs.getInt("car_model_id"),
@@ -47,10 +47,10 @@ public class CarModelDAO {
         ObservableList<CarModel> models = FXCollections.observableArrayList();
         String sql = "SELECT * FROM car_model WHERE manufacturer_id = ?";
 
-        try ( Connection conn = DBConnector.getConnection();  PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnector.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, manufacturerId);
-            try ( ResultSet rs = pstmt.executeQuery()) {
+            try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     models.add(new CarModel(
                             rs.getInt("car_model_id"),
@@ -133,6 +133,18 @@ public class CarModelDAO {
             return false;
         } finally {
             DBConnector.closeConnection(conn);
+        }
+    }
+
+    public boolean updateCarRating(int carModelId, int newRating) {
+        String sql = "UPDATE car_model SET base_rating = ? WHERE car_model_id = ?";
+        try (Connection conn = DBConnector.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, newRating);
+            pstmt.setInt(2, carModelId);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 }

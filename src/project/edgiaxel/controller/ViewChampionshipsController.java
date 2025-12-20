@@ -1,28 +1,17 @@
 package project.edgiaxel.controller;
 
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.AnchorPane;
-import javafx.stage.Stage;
-import project.edgiaxel.dao.ChampionshipDAO;
-import project.edgiaxel.dao.CircuitDAO;
 import project.edgiaxel.dao.StandingsDAO;
-import project.edgiaxel.model.ChampionshipSeason;
 import project.edgiaxel.model.Circuit;
 import project.edgiaxel.model.StandingEntry;
-import project.edgiaxel.model.RaceResultEntry;
 
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-import javafx.collections.FXCollections;
+import java.util.Optional;
 
 public class ViewChampionshipsController {
 
@@ -31,10 +20,10 @@ public class ViewChampionshipsController {
     @FXML
     private ComboBox<Circuit> circuitComboBox;
     @FXML
-    private TabPane championshipTabPane;
-    @FXML
-    private Tab raceResultsTab;
+    private Label statusLabel;
 
+    @FXML
+    private TableView<StandingEntry> driversOverallTable;
     @FXML
     private TableView<StandingEntry> overallTable;
     @FXML
@@ -44,198 +33,146 @@ public class ViewChampionshipsController {
     @FXML
     private TableView<StandingEntry> teamGT3Table;
 
-    private final ChampionshipDAO championshipDAO = ChampionshipDAO.getInstance();
-    private final CircuitDAO circuitDAO = CircuitDAO.getInstance();
+    @FXML
+    private TabPane championshipTabPane;
+    @FXML
+    private Tab raceResultsTab;
+
     private final StandingsDAO standingsDAO = StandingsDAO.getInstance();
 
-    private List<Circuit> selectedSeasonCircuits; 
-    
     @FXML
     private void initialize() {
-        setupStandingsTables();
+        setupTableColumns();
+        yearComboBox.setItems(standingsDAO.getAvailableYears());
 
-        loadSeasons();
+        // Listen for tab changes - if they go to Race Results, remind them to pick a circuit
+        championshipTabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+            if (newTab == raceResultsTab && circuitComboBox.getValue() == null) {
+                statusLabel.setText("Please select a circuit from the dropdown to see results.");
+            }
+        });
     }
 
-    private void setupStandingsTables() {
-        TableColumn<StandingEntry, Integer> manufacturersPosCol = new TableColumn<>("POS");
-        manufacturersPosCol.setCellValueFactory(new PropertyValueFactory<>("position"));
-        manufacturersPosCol.setPrefWidth(50);
-
-        TableColumn<StandingEntry, String> manufacturersNameCol = new TableColumn<>("MANUFACTURER");
-        manufacturersNameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
-        manufacturersNameCol.setPrefWidth(400);
-
-        TableColumn<StandingEntry, Integer> manufacturersPtsCol = new TableColumn<>("POINTS");
-        manufacturersPtsCol.setCellValueFactory(new PropertyValueFactory<>("points"));
-        manufacturersPtsCol.setPrefWidth(100);
-
-        manufacturersTable.getColumns().setAll(manufacturersPosCol, manufacturersNameCol, manufacturersPtsCol);
-
-        PropertyValueFactory<StandingEntry, String> carNumFactory = new PropertyValueFactory<>("carNumber");
-        PropertyValueFactory<StandingEntry, String> catFactory = new PropertyValueFactory<>("category");
-        PropertyValueFactory<StandingEntry, String> nameFactory = new PropertyValueFactory<>("name");
-        PropertyValueFactory<StandingEntry, Integer> posFactory = new PropertyValueFactory<>("position");
-        PropertyValueFactory<StandingEntry, Integer> ptsFactory = new PropertyValueFactory<>("points");
-
-        TableColumn<StandingEntry, Integer> hyperPosCol = new TableColumn<>("POS");
-        hyperPosCol.setCellValueFactory(posFactory);
-        hyperPosCol.setPrefWidth(50);
-
-        TableColumn<StandingEntry, String> hyperNumCol = new TableColumn<>("#");
-        hyperNumCol.setCellValueFactory(carNumFactory);
-        hyperNumCol.setPrefWidth(50);
-
-        TableColumn<StandingEntry, String> hyperNameCol = new TableColumn<>("TEAM NAME");
-        hyperNameCol.setCellValueFactory(nameFactory);
-        hyperNameCol.setPrefWidth(350);
-
-        TableColumn<StandingEntry, Integer> hyperPtsCol = new TableColumn<>("POINTS");
-        hyperPtsCol.setCellValueFactory(ptsFactory);
-        hyperPtsCol.setPrefWidth(100);
-
-        teamHyperTable.getColumns().setAll(hyperPosCol, hyperNumCol, hyperNameCol, hyperPtsCol);
-
-        TableColumn<StandingEntry, Integer> gt3PosCol = new TableColumn<>("POS");
-        gt3PosCol.setCellValueFactory(posFactory);
-        gt3PosCol.setPrefWidth(50);
-
-        TableColumn<StandingEntry, String> gt3NumCol = new TableColumn<>("#");
-        gt3NumCol.setCellValueFactory(carNumFactory);
-        gt3NumCol.setPrefWidth(50);
-
-        TableColumn<StandingEntry, String> gt3NameCol = new TableColumn<>("TEAM NAME");
-        gt3NameCol.setCellValueFactory(nameFactory);
-        gt3NameCol.setPrefWidth(350);
-
-        TableColumn<StandingEntry, Integer> gt3PtsCol = new TableColumn<>("POINTS");
-        gt3PtsCol.setCellValueFactory(ptsFactory);
-        gt3PtsCol.setPrefWidth(100);
-
-        teamGT3Table.getColumns().setAll(gt3PosCol, gt3NumCol, gt3NameCol, gt3PtsCol);
-
-        TableColumn<StandingEntry, Integer> overallPosCol = new TableColumn<>("POS");
-        overallPosCol.setCellValueFactory(posFactory);
-        overallPosCol.setPrefWidth(50);
-
-        TableColumn<StandingEntry, String> overallNumCol = new TableColumn<>("#");
-        overallNumCol.setCellValueFactory(carNumFactory);
-        overallNumCol.setPrefWidth(50);
-
-        TableColumn<StandingEntry, String> overallNameCol = new TableColumn<>("ENTRY NAME");
-        overallNameCol.setCellValueFactory(nameFactory);
-        overallNameCol.setPrefWidth(300);
-
-        TableColumn<StandingEntry, String> overallCatCol = new TableColumn<>("CAT");
-        overallCatCol.setCellValueFactory(catFactory);
-        overallCatCol.setPrefWidth(80);
-
-        TableColumn<StandingEntry, Integer> overallPtsCol = new TableColumn<>("POINTS");
-        overallPtsCol.setCellValueFactory(ptsFactory);
-        overallPtsCol.setPrefWidth(100);
-
-        overallTable.getColumns().setAll(overallPosCol, overallNumCol, overallNameCol, overallCatCol, overallPtsCol);
+    private void setupTableColumns() {
+        // Driver Standing: POS, NAME, TEAM, PTS
+        configureColumns(driversOverallTable, "position", "name", "carNumber", "points"); // carNumber used for Team Name here
+        // Teams (Overall/Hyper/GT3): POS, TEAM, PTS
+        configureColumns(overallTable, "position", "name", "points", null);
+        configureColumns(teamHyperTable, "position", "name", "points", null);
+        configureColumns(teamGT3Table, "position", "name", "points", null);
+        // Manufacturers: POS, NAME, PTS
+        configureColumns(manufacturersTable, "position", "name", "points", null);
     }
 
-    private void loadSeasons() {
-        ObservableList<ChampionshipSeason> seasons = championshipDAO.getAllSeasons();
+    private void configureColumns(TableView<StandingEntry> table, String pos, String name, String extra, String pts) {
+        table.getColumns().clear();
+        TableColumn<StandingEntry, Integer> pCol = new TableColumn<>("POS");
+        pCol.setCellValueFactory(new PropertyValueFactory<>(pos));
 
-        ObservableList<Integer> years = seasons.stream()
-                .map(ChampionshipSeason::getYear)
-                .collect(Collectors.toCollection(FXCollections::observableArrayList));
+        TableColumn<StandingEntry, String> nCol = new TableColumn<>("NAME / TEAM");
+        nCol.setCellValueFactory(new PropertyValueFactory<>(name));
+        nCol.setPrefWidth(300);
 
-        yearComboBox.setItems(years);
+        table.getColumns().addAll(pCol, nCol);
 
-        if (!years.isEmpty()) {
-            yearComboBox.getSelectionModel().select(0);
-            handleYearSelection();
+        if (extra != null && pts != null) { // For Drivers: Name, Team, Pts
+            TableColumn<StandingEntry, String> tCol = new TableColumn<>("TEAM");
+            tCol.setCellValueFactory(new PropertyValueFactory<>(extra));
+            tCol.setPrefWidth(200);
+            TableColumn<StandingEntry, Integer> ptsCol = new TableColumn<>("PTS");
+            ptsCol.setCellValueFactory(new PropertyValueFactory<>(pts));
+            table.getColumns().addAll(tCol, ptsCol);
+        } else { // For Teams/Manufacturers: Name, Pts
+            TableColumn<StandingEntry, Integer> ptsCol = new TableColumn<>("PTS");
+            ptsCol.setCellValueFactory(new PropertyValueFactory<>(extra != null ? extra : "points"));
+            table.getColumns().add(ptsCol);
         }
     }
 
-    // --- Event Handlers ---
     @FXML
     private void handleYearSelection() {
-        Integer selectedYear = yearComboBox.getSelectionModel().getSelectedItem();
+        Integer selectedYear = yearComboBox.getValue();
         if (selectedYear == null) {
             return;
         }
 
-        selectedSeasonCircuits = circuitDAO.getAllCircuits(); 
-        circuitComboBox.setItems(FXCollections.observableArrayList(selectedSeasonCircuits));
-        circuitComboBox.getSelectionModel().clearSelection();
+        // Load Standings Data
+        driversOverallTable.setItems(standingsDAO.getDriverStandings(selectedYear));
+        overallTable.setItems(standingsDAO.getTeamStandings(selectedYear, "Overall"));
+        manufacturersTable.setItems(standingsDAO.getManufacturerStandings(selectedYear));
+        teamHyperTable.setItems(standingsDAO.getTeamStandings(selectedYear, "Hypercar"));
+        teamGT3Table.setItems(standingsDAO.getTeamStandings(selectedYear, "LMGT3"));
 
-        loadStandingsData(selectedYear);
-    }
-
-    private void loadStandingsData(int year) {
-        int mockSeasonId = 2025;
-
-        manufacturersTable.setItems(standingsDAO.getChampionshipStandings(mockSeasonId, "MANUFACTURER"));
-
-        ObservableList<StandingEntry> hyperTeams = standingsDAO.getChampionshipStandings(mockSeasonId, "HYPERCAR_TEAM");
-        ObservableList<StandingEntry> gt3Teams = standingsDAO.getChampionshipStandings(mockSeasonId, "LMGT3_TEAM");
-
-        teamHyperTable.setItems(hyperTeams);
-        teamGT3Table.setItems(gt3Teams);
-
-        ObservableList<StandingEntry> overallTeams = FXCollections.observableArrayList();
-
-        // Copy all entries from both lists
-        overallTeams.addAll(hyperTeams.stream()
-                .map(e -> new StandingEntry(e.getPosition(), e.getName(), e.getPoints(), e.getCategory(), e.getCarNumber()))
-                .collect(Collectors.toList()));
-
-        overallTeams.addAll(gt3Teams.stream()
-                .map(e -> new StandingEntry(e.getPosition(), e.getName(), e.getPoints(), e.getCategory(), e.getCarNumber()))
-                .collect(Collectors.toList()));
-
-        overallTeams.sort(Comparator.comparing(StandingEntry::getPoints).reversed());
-
-        for (int i = 0; i < overallTeams.size(); i++) {
-            overallTeams.get(i).setPosition(i + 1);
-        }
-
-        overallTable.setItems(overallTeams);
-
-        raceResultsTab.setContent(new Label("Select a Circuit from the dropdown above to view Race Results (FP, Quali, Race)."));
-        raceResultsTab.setText("RACE RESULTS (Select Circuit)");
-        championshipTabPane.getSelectionModel().select(0);
+        // Update Circuits for this year
+        circuitComboBox.setItems(standingsDAO.getCircuitsForYear(selectedYear));
+        statusLabel.setText("Showing standings for " + selectedYear);
     }
 
     @FXML
-    private void handleCircuitSelection() {
-        Circuit selectedCircuit = circuitComboBox.getSelectionModel().getSelectedItem();
-        Integer selectedYear = yearComboBox.getSelectionModel().getSelectedItem();
+    private void handleCircuitSelection(ActionEvent event) {
+        Circuit selectedCircuit = circuitComboBox.getValue();
+        Integer year = yearComboBox.getValue();
 
-        if (selectedCircuit == null || selectedYear == null) {
+        if (selectedCircuit == null || year == null) {
             return;
         }
 
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/RaceResultDetailsTab.fxml"));
-            AnchorPane content = loader.load();
+            Parent root = loader.load();
 
             RaceResultDetailsTabController controller = loader.getController();
-            controller.loadRaceData(selectedYear, selectedCircuit);
+            controller.loadCircuitResults(year, selectedCircuit);
 
-            raceResultsTab.setContent(content);
-            raceResultsTab.setText(selectedCircuit.getName() + " Race Results");
+            raceResultsTab.setContent(root);
             championshipTabPane.getSelectionModel().select(raceResultsTab);
+            statusLabel.setText("Loaded results for " + selectedCircuit.getName());
 
         } catch (IOException e) {
-            System.err.println("Failed to load Race Result Details: " + e.getMessage());
+            e.printStackTrace();
+            statusLabel.setText("Error loading circuit details.");
         }
+    }
+
+    @FXML
+    private void handleResetSeason(ActionEvent event) {
+        Integer year = yearComboBox.getValue();
+        if (year == null) {
+            return;
+        }
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete Season");
+        alert.setHeaderText("Permanently delete Season " + year + "?");
+        alert.setContentText("This will wipe ALL results and allow you to re-create the season from scratch.");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            boolean success = standingsDAO.resetSeasonData(year);
+            if (success) {
+                // Yuura: "Refresh everything! It's like it never happened! ✨"
+                yearComboBox.setItems(standingsDAO.getAvailableYears());
+                yearComboBox.getSelectionModel().clearSelection();
+                clearAllTables();
+                statusLabel.setText("Season " + year + " deleted completely.");
+            }
+        }
+    }
+
+    private void clearAllTables() {
+        driversOverallTable.getItems().clear();
+        overallTable.getItems().clear();
+        manufacturersTable.getItems().clear();
+        teamHyperTable.getItems().clear();
+        teamGT3Table.getItems().clear();
+        circuitComboBox.getItems().clear();
     }
 
     @FXML
     private void handleBackToDashboard(ActionEvent event) {
         try {
-            Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/Dashboard.fxml"));
-            Parent root = loader.load();
-            stage.setTitle("FIA WEC SIMULATOR");
-            stage.setScene(new Scene(root));
-            stage.show();
+            Parent root = FXMLLoader.load(getClass().getResource("/project/edgiaxel/fxml/Dashboard.fxml"));
+            yearComboBox.getScene().setRoot(root);
         } catch (IOException e) {
             e.printStackTrace();
         }

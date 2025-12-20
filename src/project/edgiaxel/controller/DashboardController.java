@@ -12,7 +12,16 @@ import project.edgiaxel.DBConnector;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.util.Optional;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ChoiceDialog;
+import project.edgiaxel.dao.ChampionshipDAO;
+import project.edgiaxel.dao.StandingsDAO;
+import project.edgiaxel.dao.TeamDAO;
+import project.edgiaxel.model.ChampionshipSeason;
+import project.edgiaxel.model.Circuit;
+import project.edgiaxel.model.Team;
 
 public class DashboardController {
 
@@ -28,6 +37,9 @@ public class DashboardController {
     private Button exitButton;
 
     private Stage primaryStage;
+    private final ChampionshipDAO championshipDAO = ChampionshipDAO.getInstance();
+    @FXML
+    private Button logoutButton;
 
     @FXML
     private void initialize() {
@@ -35,7 +47,7 @@ public class DashboardController {
     }
 
     private void checkDatabaseConnection() {
-        try ( Connection conn = DBConnector.getConnection()) {
+        try (Connection conn = DBConnector.getConnection()) {
             if (conn == null || conn.isClosed()) {
                 showErrorAlert("DB Connection FAILED. Disabling all functions.");
                 startButton.setDisable(true);
@@ -81,7 +93,68 @@ public class DashboardController {
 
     @FXML
     private void handleResumeChampionship(ActionEvent event) {
-        System.out.println("RESUME: Feature to be implemented.");
+        // 1. Get all ongoing seasons
+        ObservableList<ChampionshipSeason> ongoingList = championshipDAO.getOngoingSeasons();
+
+        if (ongoingList.isEmpty()) {
+            showInfoAlert("No ongoing championships found! Why not start a brand new one? ✨");
+            return;
+        }
+
+        ChampionshipSeason selectedSeason;
+
+        if (ongoingList.size() == 1) {
+            // Just one? Jump right in!
+            selectedSeason = ongoingList.get(0);
+        } else {
+            // Multiple? Let the Boss choose! 
+            ChoiceDialog<ChampionshipSeason> dialog = new ChoiceDialog<>(ongoingList.get(0), ongoingList);
+            dialog.setTitle("Resume Championship");
+            dialog.setHeaderText("Multiple ongoing seasons detected!");
+            dialog.setContentText("Which year do you want to continue, Axel?");
+
+            // Customizing the dialog a bit so it looks nice
+            Stage dialogStage = (Stage) dialog.getDialogPane().getScene().getWindow();
+            // dialogStage.getIcons().add(new Image("/images/icon.png")); // If you have an icon!
+
+            Optional<ChampionshipSeason> result = dialog.showAndWait();
+            if (result.isPresent()) {
+                selectedSeason = result.get();
+            } else {
+                return; // User cancelled
+            }
+        }
+
+        // 2. Load the data for the selected season
+        if (selectedSeason != null) {
+            ObservableList<Circuit> circuits = StandingsDAO.getInstance().getCircuitsForYear(selectedSeason.getYear());
+            ObservableList<Team> teams = TeamDAO.getInstance().getAllTeams();
+
+            switchToRaceManagement(event, selectedSeason.getSeasonId(), selectedSeason.getYear(), circuits, teams);
+        }
+    }
+
+    private void switchToRaceManagement(ActionEvent event, int seasonId, int year, ObservableList<Circuit> circuits, ObservableList<Team> teams) {
+        try {
+            Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/RaceManagementView.fxml"));
+            Parent root = loader.load();
+
+            RaceManagementViewController controller = loader.getController();
+            controller.initData(seasonId, year, circuits, teams);
+
+            stage.setTitle("WEC Race Management - " + year);
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showInfoAlert(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     @FXML
@@ -98,5 +171,19 @@ public class DashboardController {
     private void handleExit(ActionEvent event) {
         Platform.exit();
         System.exit(0);
+    }
+
+    @FXML
+    private void handleLogout(ActionEvent event) {
+        project.edgiaxel.SessionManager.logout(); // Kill session
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/project/edgiaxel/fxml/LoginView.fxml"));
+            Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+            stage.setTitle("FIA WEC SIMULATOR - LOGIN");
+            stage.setScene(new Scene(root));
+            stage.centerOnScreen();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

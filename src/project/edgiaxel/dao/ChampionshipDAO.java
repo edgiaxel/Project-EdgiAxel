@@ -1,17 +1,20 @@
 package project.edgiaxel.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import project.edgiaxel.DBConnector;
-import project.edgiaxel.model.Circuit;
+import project.edgiaxel.SessionManager;
 import project.edgiaxel.model.ChampionshipSeason;
-import java.sql.*;
+import project.edgiaxel.model.Circuit;
 
 public class ChampionshipDAO {
-    
-    private static ChampionshipDAO instance;
 
-    private ChampionshipDAO() {}
+    private static ChampionshipDAO instance;
 
     public static ChampionshipDAO getInstance() {
         if (instance == null) {
@@ -19,119 +22,99 @@ public class ChampionshipDAO {
         }
         return instance;
     }
-    
-    public ObservableList<ChampionshipSeason> getAllSeasons() {
-        ObservableList<ChampionshipSeason> seasons = FXCollections.observableArrayList();
-        String sql = "SELECT * FROM championship_season ORDER BY year DESC";
 
-        try (Connection conn = DBConnector.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                seasons.add(new ChampionshipSeason(
-                        rs.getInt("season_id"),
-                        rs.getInt("year"),
-                        rs.getString("status")
-                ));
-            }
-        } catch (SQLException e) {
-            System.err.println("Error fetching all seasons: " + e.getMessage());
-        }
-        return seasons;
-    }
-    
     public boolean doesSeasonExist(int year) {
-        String sql = "SELECT COUNT(*) FROM championship_season WHERE year = ?";
-        try (Connection conn = DBConnector.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, year);
-            try (ResultSet rs = pstmt.executeQuery()) {
+        String sql = "SELECT COUNT(*) FROM championship_season WHERE year = ? AND user_id = ?";
+        try (Connection conn = DBConnector.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, year);
+            ps.setInt(2, SessionManager.getCurrentUserId());
+            try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1) > 0;
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error checking season existence: " + e.getMessage());
+            e.printStackTrace();
         }
         return false;
     }
-    
+
     public int createNewSeason(int year, ObservableList<Circuit> selectedCircuits) {
-        String seasonSql = "INSERT INTO championship_season (year, status) VALUES (?, 'Created')";
-        String circuitSql = "INSERT INTO season_circuit (season_id, circuit_id, race_index) VALUES (?, ?, ?)";
-        Connection conn = DBConnector.getConnection();
+        // Yuura: "Stamping the new season with the User ID!"
+        String sqlSeason = "INSERT INTO championship_season (year, status, user_id) VALUES (?, 'Ongoing', ?)";
+        String sqlCircuit = "INSERT INTO season_circuit (season_id, circuit_id, race_index) VALUES (?, ?, ?)";
 
-        if (conn == null) return -1;
-        
-        int newSeasonId = -1;
-
-        try {
+        try (Connection conn = DBConnector.getConnection()) {
             conn.setAutoCommit(false);
-            
-            try (PreparedStatement seasonStmt = conn.prepareStatement(seasonSql, Statement.RETURN_GENERATED_KEYS)) {
-                seasonStmt.setInt(1, year);
-                if (seasonStmt.executeUpdate() > 0) {
-                    ResultSet generatedKeys = seasonStmt.getGeneratedKeys();
-                    if (generatedKeys.next()) {
-                        newSeasonId = generatedKeys.getInt(1);
+            try (PreparedStatement ps = conn.prepareStatement(sqlSeason, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setInt(1, year);
+                ps.setInt(2, SessionManager.getCurrentUserId()); // <--- The stamp
+                ps.executeUpdate();
+
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    int seasonId = rs.getInt(1);
+                    try (PreparedStatement psC = conn.prepareStatement(sqlCircuit)) {
+                        for (int i = 0; i < selectedCircuits.size(); i++) {
+                            psC.setInt(1, seasonId);
+                            psC.setInt(2, selectedCircuits.get(i).getCircuitId());
+                            psC.setInt(3, i + 1);
+                            psC.addBatch();
+                        }
+                        psC.executeBatch();
                     }
-                } else {
-                    conn.rollback();
-                    return -1;
-                }
-            }
-            
-            try (PreparedStatement circuitStmt = conn.prepareStatement(circuitSql)) {
-                int raceIndex = 1;
-                for (Circuit circuit : selectedCircuits) {
-                    circuitStmt.setInt(1, newSeasonId);
-                    circuitStmt.setInt(2, circuit.getCircuitId());
-                    circuitStmt.setInt(3, raceIndex++);
-                    circuitStmt.addBatch();
-                }
-                circuitStmt.executeBatch();
-            }
-
-            conn.commit();
-            return newSeasonId;
-
-        } catch (SQLException e) {
-            System.err.println("Transaction failed: Failed to create new season: " + e.getMessage());
-            try {
-                conn.rollback();
-            } catch (SQLException ex) {
-                System.err.println("Rollback failed: " + ex.getMessage());
-            }
-            return -1;
-        } finally {
-            try {
-                if (conn != null) {
-                    conn.setAutoCommit(true);
-                    DBConnector.closeConnection(conn);
+                    conn.commit();
+                    return seasonId;
                 }
             } catch (SQLException e) {
-                System.err.println("Error resetting auto-commit: " + e.getMessage());
+                conn.rollback();
+                e.printStackTrace();
             }
-        }
-    }
-    
-    public boolean updateSeasonStatus(int seasonId, String newStatus) {
-        String sql = "UPDATE championship_season SET status = ? WHERE season_id = ?";
-        Connection conn = DBConnector.getConnection();
-        PreparedStatement pstmt = null;
-
-        try {
-            pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, newStatus);
-            pstmt.setInt(2, seasonId);
-            int rowsAffected = pstmt.executeUpdate();
-            return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("Error updating season status: " + e.getMessage());
-            return false;
-        } finally {
-            DBConnector.closeConnection(conn);
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    // Add these to ChampionshipDAO.java
+    public void updateSeasonStatus(int seasonId, String status) {
+        String sql = "UPDATE championship_season SET status = ? WHERE season_id = ?";
+        try (Connection conn = DBConnector.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, seasonId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
+
+    public ChampionshipSeason getLatestOngoingSeason() {
+        String sql = "SELECT * FROM championship_season WHERE status = 'Ongoing' ORDER BY created_at DESC LIMIT 1";
+        try (Connection conn = DBConnector.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return new ChampionshipSeason(rs.getInt("season_id"), rs.getInt("year"), rs.getString("status"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public ObservableList<ChampionshipSeason> getOngoingSeasons() {
+        ObservableList<ChampionshipSeason> seasons = FXCollections.observableArrayList();
+        // Yuura: "Filtering by SessionManager.getCurrentUserId()!"
+        String sql = "SELECT * FROM championship_season WHERE status = 'Ongoing' AND user_id = ? ORDER BY year DESC";
+
+        try (Connection conn = DBConnector.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, SessionManager.getCurrentUserId()); // <--- The magic filter
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                seasons.add(new ChampionshipSeason(rs.getInt("season_id"), rs.getInt("year"), rs.getString("status")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return seasons;
+    }
+
 }

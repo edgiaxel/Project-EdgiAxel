@@ -147,6 +147,11 @@ public class Team {
         this.drivers = drivers;
     }
 
+    public String getCarModelName() {
+        // If carModel is null, return a placeholder so the table doesn't stay blank
+        return (carModel != null) ? carModel.getModelName() : "No Model Assigned";
+    }
+
     @Override
     public String toString() {
         return "#" + carNumber.get() + " " + teamName.get() + " (" + category.get() + ")";
