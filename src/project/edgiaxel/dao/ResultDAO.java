@@ -17,19 +17,17 @@ public class ResultDAO {
     }
 
     public void saveSessionResult(int seasonId, int circuitId, List<RaceResultEntry> results, String sessionType) {
-        // Yuura: "Directly using team_id now! No more subquery guessing games!"
         String sql = "INSERT INTO race_results (season_id, circuit_id, team_id, position, category, is_dnf, result_value, session_type) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnector.getConnection()) {
-            // Good practice to turn off auto-commit for batch
             conn.setAutoCommit(false);
 
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 for (RaceResultEntry res : results) {
                     ps.setInt(1, seasonId);
                     ps.setInt(2, circuitId);
-                    ps.setInt(3, res.getTeamId()); // <--- CRITICAL FIX
+                    ps.setInt(3, res.getTeamId()); 
                     ps.setInt(4, res.getPosition());
                     ps.setString(5, res.getCategory());
                     ps.setBoolean(6, res.getBestTimeOrLaps().equals("DNF"));
@@ -38,7 +36,7 @@ public class ResultDAO {
                     ps.addBatch();
                 }
                 ps.executeBatch();
-                conn.commit(); // Save it!
+                conn.commit(); 
                 System.out.println("Yuura: Session " + sessionType + " saved successfully!");
             } catch (SQLException ex) {
                 conn.rollback();
@@ -75,7 +73,6 @@ public class ResultDAO {
 
                 int pts = scale[classRank - 1];
 
-                // You can now use res.getTeamId() directly instead of looking it up!
                 int teamId = res.getTeamId();
                 int manuId = getManufacturerIdByTeam(teamId);
 
@@ -147,10 +144,6 @@ public class ResultDAO {
     }
 
     public void applyBonusPoint(int seasonId, String carNumber, String bonusType) {
-        // You might want to update this to take teamId, but for now, the existing string lookup is okay for bonus points
-        // if you fix the simulateSession logic.
-        // ... implementation same as before ...
-        // But wait! We need the helper getTeamIdByCarNum since we used it.
         String sql = "SELECT team_id FROM team WHERE car_number = ?";
         try (Connection conn = DBConnector.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, carNumber);

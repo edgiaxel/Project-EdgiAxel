@@ -315,7 +315,7 @@ public class StartChampionshipViewController {
     private void checkOverallReadyState() {
         startChampionshipButton.setDisable(true);
         if (!statusLabel.getText().contains("SUCCESS")) {
-            return; // Year not validated
+            return;
         }
 
         long selectedCircuitCount = allCircuitWrappers.stream().filter(CircuitWrapper::isSelected).count();
@@ -354,7 +354,6 @@ public class StartChampionshipViewController {
         if (!startChampionshipButton.isDisable()) {
             Integer year = yearComboBox.getSelectionModel().getSelectedItem();
 
-            // Filter the selected circuits and teams from our wrappers
             ObservableList<Circuit> selectedCircuits = allCircuitWrappers.stream()
                     .filter(CircuitWrapper::isSelected)
                     .map(c -> (Circuit) c)
@@ -381,7 +380,6 @@ public class StartChampionshipViewController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/project/edgiaxel/fxml/RaceManagementView.fxml"));
             Parent root = loader.load();
 
-            // Get the controller and PASS the data
             RaceManagementViewController controller = loader.getController();
             controller.initData(seasonId, year, circuits, teams);
 

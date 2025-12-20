@@ -9,10 +9,9 @@ public class SessionManager {
     private static int currentUserId = -1;
     private static String currentUsername = null;
 
-    // Check if a user was previously logged in
     public static boolean isUserLoggedIn() {
         if (currentUserId != -1) {
-            return true; // Already loaded in memory
+            return true;
         }
         Properties props = new Properties();
         try (InputStream input = new FileInputStream(PROP_FILE)) {
@@ -26,7 +25,6 @@ public class SessionManager {
                 return true;
             }
         } catch (IOException e) {
-            // No session file exists yet, that's fine!
         }
         return false;
     }
@@ -42,7 +40,7 @@ public class SessionManager {
         currentUsername = null;
         File file = new File(PROP_FILE);
         if (file.exists()) {
-            file.delete(); // Destroy the evidence! 🕵️‍♀️
+            file.delete();
         }
     }
 

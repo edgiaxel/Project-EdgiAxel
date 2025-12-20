@@ -90,7 +90,6 @@ public class ManufacturerDAO {
     }
 
     public boolean deleteManufacturer(Manufacturer manufacturer) {
-        // Yuuna: "Check if the manufacturer still has teams before you try to kill it!"
         String checkSql = "SELECT COUNT(*) FROM team WHERE manufacturer_id = ?";
         String deleteSql = "DELETE FROM manufacturer WHERE manufacturer_id = ?";
 
@@ -100,7 +99,7 @@ public class ManufacturerDAO {
                 ResultSet rs = psCheck.executeQuery();
                 if (rs.next() && rs.getInt(1) > 0) {
                     System.err.println("Aborting Delete: Manufacturer has linked Teams.");
-                    return false; // Prevent deletion of active brands
+                    return false; 
                 }
             }
 

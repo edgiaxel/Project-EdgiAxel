@@ -62,40 +62,34 @@ public class RaceManagementViewController {
         this.calendar = circuits;
         this.activeTeams = FXCollections.observableArrayList(teams);
 
-        // --- ADD THESE LISTENERS ---
-        // 1. Listen for Round (Circuit) Changes
+        
         roundSelector.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 handleCircuitChange(newVal);
-                // Also reset session selection to top for the new circuit
                 sessionListView.getSelectionModel().select(0);
             }
         });
 
-        // 2. Listen for Session (FP1, RACE, etc.) Selection
+        
         sessionListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
-                refreshTableFromDatabase(); // Show data if it exists
-                validateSessionButtons(newVal); // Grey out buttons if out of order
+                refreshTableFromDatabase(); 
+                validateSessionButtons(newVal);
             }
         });
 
-        roundSelector.getSelectionModel().select(0); // Trigger first round
-        sessionListView.getSelectionModel().select(0); // Trigger FP1
+        roundSelector.getSelectionModel().select(0); 
+        sessionListView.getSelectionModel().select(0); 
 
         setupTables();
-        // 1. Setup UI components
         roundSelector.setItems(calendar);
         sessionListView.setItems(FXCollections.observableArrayList(SESSION_ORDER));
         setupTables();
 
-        // 2. Initialize the Event Listeners
         setupListeners();
 
-        // 3. Sync state from Database (Resume Logic)
         syncProgressFromDB();
 
-        // 4. Force initial validation for the current selection
         validateSessionButtons(sessionListView.getSelectionModel().getSelectedItem());
         if (!calendar.isEmpty()) {
             Circuit first = calendar.get(currentRound);
@@ -230,31 +224,24 @@ public class RaceManagementViewController {
         }
     }
 
-    // FIXED: Added missing method
     private void saveResultsToDB(List<RaceResultEntry> results, String sessionType) {
-        // Yuuna: "Using the global seasonId so the SQL doesn't freak out!"
         ResultDAO.getInstance().saveSessionResult(this.seasonId, calendar.get(currentRound).getCircuitId(), results, sessionType);
     }
 
     private List<RaceResultEntry> simulateSession(String sessionType) {
         List<RaceResultEntry> results = new ArrayList<>();
         Random rand = new Random();
-
-        // Yuura: "Iterating through activeTeams... make sure this list isn't empty!"
         for (Team team : activeTeams) {
             double baseTime = circuitBaseTimes.getOrDefault(calendar.get(currentRound).getName(), 100.0);
 
-            // BoP and Category Logic
             double bopEffect = (100 - team.getCarModel().getBaseRating()) * 0.2;
             double categoryOffset = team.getCategory().equalsIgnoreCase("LMGT3") ? baseTime * 0.25 : 0;
             double variability = rand.nextDouble() * 2.0;
             double lapTime = baseTime + bopEffect + categoryOffset + variability;
 
-            // DNF Logic
             boolean isDnf = sessionType.equals("RACE") && rand.nextDouble() < 0.05;
             String resultStr = isDnf ? "DNF" : formatTime(lapTime);
 
-            // Yuura: "Passing team.getTeamId() here!"
             results.add(new RaceResultEntry(
                     0,
                     team.getCarNumber(),
@@ -262,11 +249,9 @@ public class RaceManagementViewController {
                     team.getCarModel().getModelName(),
                     resultStr,
                     team.getCategory(),
-                    team.getTeamId() // <--- NEW ARGUMENT
+                    team.getTeamId() 
             ));
         }
-
-        // Sort: Hypercars (Faster) then GT3
         results.sort((a, b) -> {
             if (a.getBestTimeOrLaps().equals("DNF")) {
                 return 1;
@@ -304,7 +289,6 @@ public class RaceManagementViewController {
     private void handleRoundChange(Circuit circuit) {
         int selectedRoundIndex = calendar.indexOf(circuit);
 
-        // Update Labels immediately
         circuitNameLabel.setText("CIRCUIT: " + circuit.getName() + " (" + circuit.getRaceType() + ")");
         seasonInfoLabel.setText("SEASON: " + year + " | ROUND: " + (selectedRoundIndex + 1) + "/" + calendar.size());
 
@@ -331,7 +315,6 @@ public class RaceManagementViewController {
 
         List<RaceResultEntry> results = simulateSession(session);
 
-        // CRITICAL: Save to DB before refreshing
         saveResultsToDB(results, session);
 
         lastCompletedSessionIndex = SESSION_ORDER.indexOf(session);
@@ -353,7 +336,6 @@ public class RaceManagementViewController {
             }
         }
 
-        // Refresh tables and move to next session
         updateTableViews(results);
         autoSelectNextSession();
     }
@@ -367,16 +349,13 @@ public class RaceManagementViewController {
 
     @FXML
     private void handleAutoRunAll(ActionEvent event) {
-        // Yuuna: "Calculate exactly how many sessions are left so we don't loop forever!"
         int currentIdx = sessionListView.getSelectionModel().getSelectedIndex();
         int totalSessions = SESSION_ORDER.size();
 
         for (int i = currentIdx; i < totalSessions; i++) {
-            // Ensure we are selecting the right session before running
             sessionListView.getSelectionModel().select(i);
             handleRunSession();
 
-            // If we just finished the RACE, break immediately
             if (SESSION_ORDER.get(i).equals("RACE")) {
                 break;
             }
@@ -387,23 +366,16 @@ public class RaceManagementViewController {
     @FXML
     private void handleNextRace(ActionEvent event) {
         if (currentRound < calendar.size() - 1) {
-            // Increment the round index
             this.currentRound++;
 
-            // Reset the session progress for the new weekend
             this.lastCompletedSessionIndex = -1;
 
-            // FIXED: Programmatically update the ComboBox selection.
-            // This triggers the listener we set up in initData() -> loadRoundHistory()
             roundSelector.getSelectionModel().select(currentRound);
 
-            // Reset the session list view to the top (FP1)
             sessionListView.getSelectionModel().select(0);
 
-            // Update the main round info label
             seasonInfoLabel.setText("SEASON: " + year + " | ROUND: " + (currentRound + 1) + "/" + calendar.size());
 
-            // Disable the button again until the next RACE is finished
             nextRaceButton.setDisable(true);
 
             statusLabel.setText("STATUS: ARRIVED AT " + calendar.get(currentRound).getName());
@@ -438,12 +410,10 @@ public class RaceManagementViewController {
             nextRaceButton.setDisable(true);
             finishChampionshipButton.setDisable(true);
 
-            // Transition to Standings View
             handleViewStandings(event);
         }
     }
 
-// FIXED: Added missing navigation method
     private void handleViewStandings(ActionEvent event) {
         try {
             Stage stage = (Stage) statusLabel.getScene().getWindow();
@@ -457,7 +427,6 @@ public class RaceManagementViewController {
     }
 
     private void handleHyperpoleTransition(List<RaceResultEntry> qualiResults) {
-        // Separate and get top 10 from each category
         List<RaceResultEntry> topHypercars = qualiResults.stream()
                 .filter(r -> r.getCategory().equalsIgnoreCase("Hypercar") && !r.getBestTimeOrLaps().equals("DNF"))
                 .limit(10)
@@ -475,9 +444,7 @@ public class RaceManagementViewController {
         statusLabel.setText("QUALIFYING DONE: TOP 10 ADVANCE TO HYPERPOLE");
     }
 
-// Update your handleRunSession to award the Pole Point
     private void awardPolePoint(List<RaceResultEntry> hyperpoleResults) {
-        // Top car in each category gets +1 point
         RaceResultEntry hyperPole = hyperpoleResults.stream()
                 .filter(r -> r.getCategory().equalsIgnoreCase("Hypercar"))
                 .findFirst().orElse(null);

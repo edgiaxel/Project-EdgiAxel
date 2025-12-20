@@ -148,7 +148,6 @@ public class Team {
     }
 
     public String getCarModelName() {
-        // If carModel is null, return a placeholder so the table doesn't stay blank
         return (carModel != null) ? carModel.getModelName() : "No Model Assigned";
     }
 

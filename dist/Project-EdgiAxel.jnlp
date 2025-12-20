@@ -8,8 +8,20 @@
   </information>
   <resources>
     <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
-    <jar href="Project-EdgiAxel.jar" size="6124184" download="eager" />
-    <jar href="lib\mysql-connector-j-9.4.0.jar" size="2591877" download="eager" />
+    <jar href="Project-EdgiAxel.jar" size="6192090" download="eager" />
+    <jar href="lib/javafx-swt.jar" size="36208" download="eager" />
+    <jar href="lib/javafx.base.jar" size="749555" download="eager" />
+    <jar href="lib/javafx.controls.jar" size="2605448" download="eager" />
+    <jar href="lib/javafx.fxml.jar" size="126707" download="eager" />
+    <jar href="lib/javafx.graphics.jar" size="4560593" download="eager" />
+    <jar href="lib/javafx.media.jar" size="284429" download="eager" />
+    <jar href="lib/javafx.swing.jar" size="88067" download="eager" />
+    <jar href="lib/javafx.web.jar" size="722652" download="eager" />
+    <jar href="lib/jdk.jsobject.jar" size="1675" download="eager" />
+    <jar href="lib/jfx.incubator.input.jar" size="27032" download="eager" />
+    <jar href="lib/jfx.incubator.richtext.jar" size="318356" download="eager" />
+    <jar href="lib/mariadb-java-client-3.5.6.jar" size="760265" download="eager" />
+    <jar href="lib/mysql-connector-j-9.4.0.jar" size="2591877" download="eager" />
   </resources>
   <jfx:javafx-desc  width="800" height="600" main-class="project.edgiaxel.Main"  name="Project-EdgiAxel" />
   <update check="always"/>

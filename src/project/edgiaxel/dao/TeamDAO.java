@@ -204,7 +204,6 @@ public class TeamDAO {
 
     public ObservableList<Team> getAllTeams() {
         ObservableList<Team> teams = FXCollections.observableArrayList();
-        // Yuura: "Give me EVERYONE!"
         String sql = "SELECT * FROM team";
 
         try (Connection conn = DBConnector.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
@@ -219,11 +218,9 @@ public class TeamDAO {
                         rs.getString("nationality"),
                         rs.getString("category")
                 );
-                // Load the model object so we can see it in the table
                 CarModel carModel = CarModelDAO.getInstance().getCarModelById(team.getCarModelId());
                 team.setCarModel(carModel);
 
-                // We don't necessarily need drivers for just listing teams, but it's safer
                 team.setDrivers(getDriversForTeam(team.getTeamId()));
 
                 teams.add(team);

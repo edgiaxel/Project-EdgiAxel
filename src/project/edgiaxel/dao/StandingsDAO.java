@@ -25,10 +25,8 @@ public class StandingsDAO {
         return instance;
     }
 
-    // FIXED: Added method to get all years that have an existing season
     public ObservableList<Integer> getAvailableYears() {
         ObservableList<Integer> years = FXCollections.observableArrayList();
-        // Yuuna: "Ordering by year DESC so the newest seasons show up first!"
         String sql = "SELECT DISTINCT year FROM championship_season ORDER BY year DESC";
         try (Connection conn = DBConnector.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -54,7 +52,6 @@ public class StandingsDAO {
             int pos = 1;
             while (rs.next()) {
                 String fullName = rs.getString("first_name") + " " + rs.getString("last_name");
-                // Yuura: "Putting Team Name in the 'carNumber' field for the table factory!"
                 list.add(new StandingEntry(pos++, fullName, rs.getInt("points"), "", rs.getString("team_name")));
             }
         } catch (SQLException e) {
@@ -63,7 +60,6 @@ public class StandingsDAO {
         return list;
     }
 
-    // FIXED: Added method for Team Standings filtered by Category
     public ObservableList<StandingEntry> getTeamStandings(int year, String category) {
         ObservableList<StandingEntry> list = FXCollections.observableArrayList();
         String sql;
@@ -97,7 +93,6 @@ public class StandingsDAO {
         return list;
     }
 
-    // (ManufacturerStandings already implemented in previous turn)
     public ObservableList<StandingEntry> getManufacturerStandings(int year) {
         ObservableList<StandingEntry> list = FXCollections.observableArrayList();
         String sql = "SELECT m.name, ms.points FROM manufacturer_standings ms "
@@ -118,7 +113,6 @@ public class StandingsDAO {
     }
 
     public boolean resetSeasonData(int year) {
-        // Yuura: "The Ultimate Eraser! 🧨"
         String[] queries = {
             "DELETE FROM race_results WHERE season_id = (SELECT season_id FROM championship_season WHERE year = ?)",
             "DELETE FROM driver_standings WHERE season_id = (SELECT season_id FROM championship_season WHERE year = ?)",
@@ -146,7 +140,6 @@ public class StandingsDAO {
 
     public ObservableList<RaceResultEntry> getSessionResults(int year, int circuitId, String sessionType) {
         ObservableList<RaceResultEntry> results = FXCollections.observableArrayList();
-        // Yuura: "Added team_id to the select just in case!"
         String sql = "SELECT rr.position, t.team_id, t.car_number, t.team_name, cm.model_name, rr.result_value, t.category "
                 + "FROM race_results rr "
                 + "JOIN team t ON rr.team_id = t.team_id "
@@ -168,7 +161,7 @@ public class StandingsDAO {
                         rs.getString("model_name"),
                         rs.getString("result_value"),
                         rs.getString("category"),
-                        rs.getInt("team_id") // <--- PASS IT HERE
+                        rs.getInt("team_id") 
                 ));
             }
         } catch (SQLException e) {

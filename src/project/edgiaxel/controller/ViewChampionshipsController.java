@@ -45,7 +45,6 @@ public class ViewChampionshipsController {
         setupTableColumns();
         yearComboBox.setItems(standingsDAO.getAvailableYears());
 
-        // Listen for tab changes - if they go to Race Results, remind them to pick a circuit
         championshipTabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
             if (newTab == raceResultsTab && circuitComboBox.getValue() == null) {
                 statusLabel.setText("Please select a circuit from the dropdown to see results.");
@@ -54,13 +53,10 @@ public class ViewChampionshipsController {
     }
 
     private void setupTableColumns() {
-        // Driver Standing: POS, NAME, TEAM, PTS
-        configureColumns(driversOverallTable, "position", "name", "carNumber", "points"); // carNumber used for Team Name here
-        // Teams (Overall/Hyper/GT3): POS, TEAM, PTS
+        configureColumns(driversOverallTable, "position", "name", "carNumber", "points"); 
         configureColumns(overallTable, "position", "name", "points", null);
         configureColumns(teamHyperTable, "position", "name", "points", null);
         configureColumns(teamGT3Table, "position", "name", "points", null);
-        // Manufacturers: POS, NAME, PTS
         configureColumns(manufacturersTable, "position", "name", "points", null);
     }
 
@@ -75,14 +71,14 @@ public class ViewChampionshipsController {
 
         table.getColumns().addAll(pCol, nCol);
 
-        if (extra != null && pts != null) { // For Drivers: Name, Team, Pts
+        if (extra != null && pts != null) {
             TableColumn<StandingEntry, String> tCol = new TableColumn<>("TEAM");
             tCol.setCellValueFactory(new PropertyValueFactory<>(extra));
             tCol.setPrefWidth(200);
             TableColumn<StandingEntry, Integer> ptsCol = new TableColumn<>("PTS");
             ptsCol.setCellValueFactory(new PropertyValueFactory<>(pts));
             table.getColumns().addAll(tCol, ptsCol);
-        } else { // For Teams/Manufacturers: Name, Pts
+        } else { 
             TableColumn<StandingEntry, Integer> ptsCol = new TableColumn<>("PTS");
             ptsCol.setCellValueFactory(new PropertyValueFactory<>(extra != null ? extra : "points"));
             table.getColumns().add(ptsCol);
@@ -96,14 +92,12 @@ public class ViewChampionshipsController {
             return;
         }
 
-        // Load Standings Data
         driversOverallTable.setItems(standingsDAO.getDriverStandings(selectedYear));
         overallTable.setItems(standingsDAO.getTeamStandings(selectedYear, "Overall"));
         manufacturersTable.setItems(standingsDAO.getManufacturerStandings(selectedYear));
         teamHyperTable.setItems(standingsDAO.getTeamStandings(selectedYear, "Hypercar"));
         teamGT3Table.setItems(standingsDAO.getTeamStandings(selectedYear, "LMGT3"));
 
-        // Update Circuits for this year
         circuitComboBox.setItems(standingsDAO.getCircuitsForYear(selectedYear));
         statusLabel.setText("Showing standings for " + selectedYear);
     }
@@ -150,7 +144,6 @@ public class ViewChampionshipsController {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             boolean success = standingsDAO.resetSeasonData(year);
             if (success) {
-                // Yuura: "Refresh everything! It's like it never happened! ✨"
                 yearComboBox.setItems(standingsDAO.getAvailableYears());
                 yearComboBox.getSelectionModel().clearSelection();
                 clearAllTables();

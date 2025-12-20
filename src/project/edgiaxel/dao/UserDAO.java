@@ -25,7 +25,6 @@ public class UserDAO {
             ps.setString(2, password);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                // Login Success! Save to Session Manager
                 SessionManager.login(rs.getInt("user_id"), rs.getString("username"));
                 return true;
             }

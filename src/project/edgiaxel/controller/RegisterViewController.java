@@ -41,7 +41,6 @@ public class RegisterViewController {
             );
 
             if (success) {
-                // Return to login
                 handleCancel(event);
             } else {
                 statusLabel.setText("Database Error.");

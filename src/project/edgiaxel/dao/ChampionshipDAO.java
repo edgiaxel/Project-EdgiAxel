@@ -40,7 +40,6 @@ public class ChampionshipDAO {
     }
 
     public int createNewSeason(int year, ObservableList<Circuit> selectedCircuits) {
-        // Yuura: "Stamping the new season with the User ID!"
         String sqlSeason = "INSERT INTO championship_season (year, status, user_id) VALUES (?, 'Ongoing', ?)";
         String sqlCircuit = "INSERT INTO season_circuit (season_id, circuit_id, race_index) VALUES (?, ?, ?)";
 
@@ -48,7 +47,7 @@ public class ChampionshipDAO {
             conn.setAutoCommit(false);
             try (PreparedStatement ps = conn.prepareStatement(sqlSeason, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setInt(1, year);
-                ps.setInt(2, SessionManager.getCurrentUserId()); // <--- The stamp
+                ps.setInt(2, SessionManager.getCurrentUserId()); 
                 ps.executeUpdate();
 
                 ResultSet rs = ps.getGeneratedKeys();
@@ -76,7 +75,6 @@ public class ChampionshipDAO {
         return -1;
     }
 
-    // Add these to ChampionshipDAO.java
     public void updateSeasonStatus(int seasonId, String status) {
         String sql = "UPDATE championship_season SET status = ? WHERE season_id = ?";
         try (Connection conn = DBConnector.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -102,11 +100,10 @@ public class ChampionshipDAO {
 
     public ObservableList<ChampionshipSeason> getOngoingSeasons() {
         ObservableList<ChampionshipSeason> seasons = FXCollections.observableArrayList();
-        // Yuura: "Filtering by SessionManager.getCurrentUserId()!"
         String sql = "SELECT * FROM championship_season WHERE status = 'Ongoing' AND user_id = ? ORDER BY year DESC";
 
         try (Connection conn = DBConnector.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, SessionManager.getCurrentUserId()); // <--- The magic filter
+            ps.setInt(1, SessionManager.getCurrentUserId());
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 seasons.add(new ChampionshipSeason(rs.getInt("season_id"), rs.getInt("year"), rs.getString("status")));

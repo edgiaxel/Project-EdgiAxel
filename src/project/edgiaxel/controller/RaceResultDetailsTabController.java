@@ -31,7 +31,6 @@ public class RaceResultDetailsTabController {
 
     @FXML
     private void initialize() {
-        // Yuuki: "Initializing the columns... at least this part is automated."
         setupResultTableColumns(raceResultTable);
         setupResultTableColumns(qualiResultTable);
         setupResultTableColumns(fpResultTable);
@@ -44,17 +43,14 @@ public class RaceResultDetailsTabController {
 
         circuitHeaderLabel.setText("RESULTS FOR " + circuit.getName().toUpperCase() + " - " + circuit.getRaceType());
 
-        // Fetching the raw lists from the database
         ObservableList<RaceResultEntry> raceResults = standingsDAO.getSessionResults(year, circuit.getCircuitId(), "RACE");
         ObservableList<RaceResultEntry> qualiResults = standingsDAO.getSessionResults(year, circuit.getCircuitId(), "QUALIFYING");
         ObservableList<RaceResultEntry> fpResults = standingsDAO.getSessionResults(year, circuit.getCircuitId(), "FP%");
 
-        // Populating the tables
         raceResultTable.setItems(raceResults);
         qualiResultTable.setItems(qualiResults);
         fpResultTable.setItems(fpResults);
 
-        // Refresh to ensure the data binds to the UI immediately
         raceResultTable.refresh();
         qualiResultTable.refresh();
         fpResultTable.refresh();

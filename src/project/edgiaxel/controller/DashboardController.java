@@ -93,7 +93,6 @@ public class DashboardController {
 
     @FXML
     private void handleResumeChampionship(ActionEvent event) {
-        // 1. Get all ongoing seasons
         ObservableList<ChampionshipSeason> ongoingList = championshipDAO.getOngoingSeasons();
 
         if (ongoingList.isEmpty()) {
@@ -104,28 +103,23 @@ public class DashboardController {
         ChampionshipSeason selectedSeason;
 
         if (ongoingList.size() == 1) {
-            // Just one? Jump right in!
             selectedSeason = ongoingList.get(0);
         } else {
-            // Multiple? Let the Boss choose! 
             ChoiceDialog<ChampionshipSeason> dialog = new ChoiceDialog<>(ongoingList.get(0), ongoingList);
             dialog.setTitle("Resume Championship");
             dialog.setHeaderText("Multiple ongoing seasons detected!");
             dialog.setContentText("Which year do you want to continue, Axel?");
 
-            // Customizing the dialog a bit so it looks nice
             Stage dialogStage = (Stage) dialog.getDialogPane().getScene().getWindow();
-            // dialogStage.getIcons().add(new Image("/images/icon.png")); // If you have an icon!
-
+            
             Optional<ChampionshipSeason> result = dialog.showAndWait();
             if (result.isPresent()) {
                 selectedSeason = result.get();
             } else {
-                return; // User cancelled
+                return; 
             }
         }
 
-        // 2. Load the data for the selected season
         if (selectedSeason != null) {
             ObservableList<Circuit> circuits = StandingsDAO.getInstance().getCircuitsForYear(selectedSeason.getYear());
             ObservableList<Team> teams = TeamDAO.getInstance().getAllTeams();
@@ -175,7 +169,7 @@ public class DashboardController {
 
     @FXML
     private void handleLogout(ActionEvent event) {
-        project.edgiaxel.SessionManager.logout(); // Kill session
+        project.edgiaxel.SessionManager.logout(); 
         try {
             Parent root = FXMLLoader.load(getClass().getResource("/project/edgiaxel/fxml/LoginView.fxml"));
             Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();

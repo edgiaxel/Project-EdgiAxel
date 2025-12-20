@@ -10,10 +10,9 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        String fxmlFile = "/project/edgiaxel/fxml/LoginView.fxml"; // Default
+        String fxmlFile = "/project/edgiaxel/fxml/LoginView.fxml"; 
         String title = "FIA WEC SIMULATOR - LOGIN";
 
-        // Check for persistent session
         if (SessionManager.isUserLoggedIn()) {
             fxmlFile = "/project/edgiaxel/fxml/Dashboard.fxml";
             title = "FIA WEC SIMULATOR - " + SessionManager.getCurrentUsername();

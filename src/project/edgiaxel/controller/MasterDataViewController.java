@@ -62,11 +62,9 @@ public class MasterDataViewController {
         setupDriverTable();
         setupCircuitTable();
 
-        // 1. Load the initial data sets
         loadManufacturerData();
         loadCircuitData();
 
-        // 2. Add Listeners with Null Checks
         manufacturerTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 showManufacturerDetails(newVal);
@@ -99,8 +97,6 @@ public class MasterDataViewController {
         driverTable.getItems().clear();
         driverHeader.setText("3. DRIVERS (Select Team Above)");
 
-        // Unified Safety Loading for Logos
-        // Path matches: /images/manufacturer_toyota.jpg
         safeLoadImage(masterImageView, manufacturer.getLogoPath(), manufacturer.getName() + " Logo");
     }
 
@@ -108,15 +104,15 @@ public class MasterDataViewController {
         manufacturerTable.getColumns().clear();
 
         TableColumn<Manufacturer, Integer> idCol = new TableColumn<>("ID");
-        idCol.setCellValueFactory(new PropertyValueFactory<>("manufacturerId")); // Matches getManufacturerId()
+        idCol.setCellValueFactory(new PropertyValueFactory<>("manufacturerId"));
         idCol.setPrefWidth(50);
 
         TableColumn<Manufacturer, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name")); // Matches getName()
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         nameCol.setPrefWidth(200);
 
         TableColumn<Manufacturer, String> categoryCol = new TableColumn<>("Category");
-        categoryCol.setCellValueFactory(new PropertyValueFactory<>("category")); // Matches getCategory()
+        categoryCol.setCellValueFactory(new PropertyValueFactory<>("category"));
         categoryCol.setPrefWidth(100);
 
         manufacturerTable.getColumns().setAll(idCol, nameCol, categoryCol);
@@ -157,7 +153,7 @@ public class MasterDataViewController {
         driverIdCol.setPrefWidth(50);
 
         TableColumn<Driver, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("fullName")); // Matches getFullName()
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("fullName"));
         nameCol.setPrefWidth(250);
 
         TableColumn<Driver, String> nationalityCol = new TableColumn<>("Nationality");
@@ -206,34 +202,27 @@ public class MasterDataViewController {
             return;
         }
 
-        // 1. Update UI Labels and Drivers
         driverHeader.setText("3. DRIVERS for: " + team.getTeamName() + " #" + team.getCarNumber());
         if (team.getDrivers() == null || team.getDrivers().isEmpty()) {
             team.setDrivers(teamDAO.getDriversForTeam(team.getTeamId()));
         }
         driverTable.setItems(team.getDrivers());
 
-        // 2. Try to load Team Livery
         String teamLiveryPath = "/images/team_" + team.getCarNumber() + ".png";
 
         try {
             java.io.InputStream liveryStream = getClass().getResourceAsStream(teamLiveryPath);
             if (liveryStream != null) {
-                // If livery exists, show it
                 masterImageView.setImage(new Image(liveryStream));
                 imageStatusLabel.setText("Livery loaded for #" + team.getCarNumber());
             } else {
-                // Yuuki: "Livery missing... falling back to the boss's logo."
                 throw new Exception("Livery missing");
             }
         } catch (Exception e) {
-            // FALLBACK: Show the Manufacturer Logo instead of a generic placeholder
             Manufacturer selectedM = manufacturerTable.getSelectionModel().getSelectedItem();
             if (selectedM != null) {
-                // Re-use the safeLoadImage helper to put the Manufacturer logo back up
                 safeLoadImage(masterImageView, selectedM.getLogoPath(), selectedM.getName() + " Logo (Livery Pending)");
             } else {
-                // Absolute last resort if somehow no manufacturer is selected
                 loadPlaceholderImage("Select a manufacturer to see brand logo.");
             }
         }
@@ -271,15 +260,14 @@ public class MasterDataViewController {
     }
 
     private void refreshAllTables() {
-        loadManufacturerData(); // Reloads manufacturers
-        loadCircuitData();      // Reloads circuits
+        loadManufacturerData(); 
+        loadCircuitData();     
         manufacturerTable.refresh();
         teamTable.refresh();
         driverTable.refresh();
         circuitTable.refresh();
     }
 
-// Fixed Image Loading inside showManufacturerDetails / showTeamDetails
     private void safeLoadImage(ImageView view, String path, String description) {
         try {
             if (path == null || path.isEmpty()) {
@@ -295,7 +283,6 @@ public class MasterDataViewController {
                 throw new Exception("Resource Missing");
             }
         } catch (Exception e) {
-            // Yuura: "Placeholder time! 🎨"
             try {
                 java.io.InputStream placeholder = getClass().getResourceAsStream("/images/wec_logo_placeholder.png");
                 if (placeholder != null) {
@@ -316,7 +303,7 @@ public class MasterDataViewController {
         Manufacturer newManufacturer = new Manufacturer(0, "", "", "Hypercar");
         if (showManufacturerEditDialog(newManufacturer)) {
             if (manufacturerDAO.insertManufacturer(newManufacturer)) {
-                refreshAllTables(); // FIXED: Auto-refresh
+                refreshAllTables();
             } else {
                 showAlert("Error", "Failed to add manufacturer.");
             }
@@ -422,7 +409,7 @@ public class MasterDataViewController {
         }
 
         if (teamDAO.deleteTeam(selectedTeam)) {
-            refreshAllTables(); // FIXED: Auto-refresh
+            refreshAllTables();
         }
     }
 
@@ -616,20 +603,17 @@ public class MasterDataViewController {
 
         CarModel model = selectedTeam.getCarModel();
 
-        // Create a fancy input dialog
         TextInputDialog dialog = new TextInputDialog(String.valueOf(model.getBaseRating()));
         dialog.setTitle("Balance of Performance Editor");
         dialog.setHeaderText("Adjusting Rating for: " + model.getModelName());
         dialog.setContentText("Enter new Base Rating (Current: " + model.getBaseRating() + "):");
 
-        // Add some styling if you want, or just get the result
         Optional<String> result = dialog.showAndWait();
 
         result.ifPresent(newRatingStr -> {
             try {
                 int newRating = Integer.parseInt(newRatingStr);
 
-                // Validation: Keep it within WEC logic!
                 if (newRating < 50 || newRating > 110) {
                     showAlert("Out of Range", "Rating should stay between 50 and 110 for simulation stability!");
                     return;
@@ -637,7 +621,7 @@ public class MasterDataViewController {
 
                 if (CarModelDAO.getInstance().updateCarRating(model.getCarModelId(), newRating)) {
                     model.setBaseRating(newRating);
-                    teamTable.refresh(); // Update the view!
+                    teamTable.refresh(); 
                     statusLabel.setText("BoP Updated: " + model.getModelName() + " is now " + newRating);
                 }
             } catch (NumberFormatException e) {
